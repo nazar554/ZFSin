@@ -37,7 +37,7 @@ getcpuid()
 	return ((uint32_t)cpu_number());
 }
 
-unsigned long long spl_cpuid_features(void)
+uint64_t spl_cpuid_features(void)
 {
 	i386_cpu_info_t *info;
 
@@ -45,7 +45,7 @@ unsigned long long spl_cpuid_features(void)
 	return info->cpuid_features;
 }
 
-unsigned long long spl_cpuid_leaf7_features(void)
+uint64_t spl_cpuid_leaf7_features(void)
 {
 	i386_cpu_info_t *info;
 
