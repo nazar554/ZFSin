@@ -47,6 +47,7 @@
 #ifdef __APPLE__
 #include <sys/disk.h>
 #endif
+#include <zfs_fletcher.h>
 #include <sys/crypto/icp.h>
 
 /*
@@ -1339,12 +1340,14 @@ kernel_init(int mode)
 
 	spa_init(mode);
 
+	fletcher_4_init();
 	//tsd_create(&rrw_tsd_key, rrw_tsd_destroy);
 }
 
 void
 kernel_fini(void)
 {
+	fletcher_4_fini();
 	spa_fini();
 
 	icp_fini();

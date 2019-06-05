@@ -22,30 +22,7 @@
  * Copyright (c) 2003, 2010, Oracle and/or its affiliates. All rights reserved.
  */
 
-#include <sys/zfs_context.h>
-#include <sys/crypto/icp.h>
-#include <sys/crypto/spi.h>
-#include <modes/modes.h>
 #include <aes/aes_impl.h>
-
-#ifdef _WIN32
-// No assembler for now
-#undef __amd64
-#endif
-
-#ifdef __amd64
-
-#ifdef _KERNEL
-/* Workaround for no XMM kernel thread save/restore */
-#define	KPREEMPT_DISABLE	kpreempt_disable()
-#define	KPREEMPT_ENABLE		kpreempt_enable()
-
-#else
-#define	KPREEMPT_DISABLE
-#define	KPREEMPT_ENABLE
-#endif	/* _KERNEL */
-#endif  /* __amd64 */
-
 
 /*
  * This file is derived from the file  rijndael-alg-fst.c  taken from the
@@ -82,46 +59,6 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#if defined(__amd64)
-
-/* These functions are used to execute amd64 instructions for AMD or Intel: */
-extern int rijndael_key_setup_enc_amd64(uint32_t rk[],
-	const uint32_t cipherKey[], int keyBits);
-extern int rijndael_key_setup_dec_amd64(uint32_t rk[],
-	const uint32_t cipherKey[], int keyBits);
-extern void aes_encrypt_amd64(const uint32_t rk[], int Nr,
-	const uint32_t pt[4], uint32_t ct[4]);
-extern void aes_decrypt_amd64(const uint32_t rk[], int Nr,
-	const uint32_t ct[4], uint32_t pt[4]);
-
-/* These functions are used to execute Intel-specific AES-NI instructions: */
-extern int rijndael_key_setup_enc_intel(uint32_t rk[],
-	const uint32_t cipherKey[], uint64_t keyBits);
-extern int rijndael_key_setup_dec_intel(uint32_t rk[],
-	const uint32_t cipherKey[], uint64_t keyBits);
-extern void aes_encrypt_intel(const uint32_t rk[], int Nr,
-	const uint32_t pt[4], uint32_t ct[4]);
-extern void aes_decrypt_intel(const uint32_t rk[], int Nr,
-	const uint32_t ct[4], uint32_t pt[4]);
-
-static int intel_aes_instructions_present(void);
-
-#define	AES_ENCRYPT_IMPL(a, b, c, d, e) rijndael_encrypt(a, b, c, d, e)
-#define	AES_DECRYPT_IMPL(a, b, c, d, e) rijndael_decrypt(a, b, c, d, e)
-
-#else /* Generic C implementation */
-
-#define	AES_ENCRYPT_IMPL(a, b, c, d, e)	rijndael_encrypt(a, b, c, d)
-#define	AES_DECRYPT_IMPL(a, b, c, d, e)	rijndael_decrypt(a, b, c, d)
-#define	rijndael_key_setup_enc_raw	rijndael_key_setup_enc
-#endif	/* __amd64 */
-
-#if defined(_LITTLE_ENDIAN) && !defined(__amd64)
-#define	AES_BYTE_SWAP
-#endif
-
-
-#if !defined(__amd64)
 /*
  *  Constant tables
  */
@@ -850,7 +787,7 @@ static const uint32_t rcon[RC_LENGTH] =
  * keyBits	AES key size (128, 192, or 256 bits)
  */
 static int
-rijndael_key_setup_enc_raw(uint32_t rk[], const uint32_t cipherKey[],
+rijndael_key_setup_enc(uint32_t rk[], const uint32_t cipherKey[],
     int keyBits)
 {
 	int		i = 0;
@@ -942,97 +879,6 @@ rijndael_key_setup_enc_raw(uint32_t rk[], const uint32_t cipherKey[],
 
 	return (0);
 }
-#endif	/* !__amd64 */
-
-#if defined(__amd64)
-
-/*
- * Expand the 32-bit AES cipher key array into the encryption and decryption
- * key schedules.
- *
- * Parameters:
- * key		AES key schedule to be initialized
- * keyarr32	User key
- * keyBits	AES key size (128, 192, or 256 bits)
- */
-static void
-aes_setupkeys(aes_key_t *key, const uint32_t *keyarr32, int keybits)
-{
-	if (intel_aes_instructions_present()) {
-		key->flags = INTEL_AES_NI_CAPABLE;
-		KPREEMPT_DISABLE;
-		key->nr = rijndael_key_setup_enc_intel(&(key->encr_ks.ks32[0]),
-		    keyarr32, keybits);
-		key->nr = rijndael_key_setup_dec_intel(&(key->decr_ks.ks32[0]),
-		    keyarr32, keybits);
-		KPREEMPT_ENABLE;
-	} else {
-		key->flags = 0;
-		key->nr = rijndael_key_setup_enc_amd64(&(key->encr_ks.ks32[0]),
-		    keyarr32, keybits);
-		key->nr = rijndael_key_setup_dec_amd64(&(key->decr_ks.ks32[0]),
-		    keyarr32, keybits);
-	}
-
-	key->type = AES_32BIT_KS;
-}
-
-/*
- * Encrypt one block of data. The block is assumed to be an array
- * of four uint32_t values, so copy for alignment (and byte-order
- * reversal for little endian systems might be necessary on the
- * input and output byte streams.
- * The size of the key schedule depends on the number of rounds
- * (which can be computed from the size of the key), i.e. 4*(Nr + 1).
- *
- * Parameters:
- * rk		Key schedule, of aes_ks_t (60 32-bit integers)
- * Nr		Number of rounds
- * pt		Input block (plain text)
- * ct		Output block (crypto text).  Can overlap with pt
- * flags	Indicates whether we're on Intel AES-NI-capable hardware
- */
-static void
-rijndael_encrypt(const uint32_t rk[], int Nr, const uint32_t pt[4],
-    uint32_t ct[4], int flags) {
-	if (flags & INTEL_AES_NI_CAPABLE) {
-		KPREEMPT_DISABLE;
-		aes_encrypt_intel(rk, Nr, pt, ct);
-		KPREEMPT_ENABLE;
-	} else {
-		aes_encrypt_amd64(rk, Nr, pt, ct);
-	}
-}
-
-/*
- * Decrypt one block of data. The block is assumed to be an array
- * of four uint32_t values, so copy for alignment (and byte-order
- * reversal for little endian systems might be necessary on the
- * input and output byte streams.
- * The size of the key schedule depends on the number of rounds
- * (which can be computed from the size of the key), i.e. 4*(Nr + 1).
- *
- * Parameters:
- * rk		Key schedule, of aes_ks_t (60 32-bit integers)
- * Nr		Number of rounds
- * ct		Input block (crypto text)
- * pt		Output block (plain text). Can overlap with pt
- * flags	Indicates whether we're on Intel AES-NI-capable hardware
- */
-static void
-rijndael_decrypt(const uint32_t rk[], int Nr, const uint32_t ct[4],
-    uint32_t pt[4], int flags) {
-	if (flags & INTEL_AES_NI_CAPABLE) {
-		KPREEMPT_DISABLE;
-		aes_decrypt_intel(rk, Nr, ct, pt);
-		KPREEMPT_ENABLE;
-	} else {
-		aes_decrypt_amd64(rk, Nr, ct, pt);
-	}
-}
-
-
-#else /* generic C implementation */
 
 /*
  *  Expand the cipher key into the decryption key schedule.
@@ -1052,7 +898,7 @@ rijndael_key_setup_dec(uint32_t rk[], const uint32_t cipherKey[], int keyBits)
 	uint32_t temp;
 
 	/* expand the cipher key: */
-	Nr = rijndael_key_setup_enc_raw(rk, cipherKey, keyBits);
+	Nr = rijndael_key_setup_enc(rk, cipherKey, keyBits);
 
 	/* invert the order of the round keys: */
 	for (i = 0, j = 4 * Nr; i < j; i += 4, j -= 4) {
@@ -1097,7 +943,6 @@ rijndael_key_setup_dec(uint32_t rk[], const uint32_t cipherKey[], int keyBits)
 	return (Nr);
 }
 
-
 /*
  * Expand the 32-bit AES cipher key array into the encryption and decryption
  * key schedules.
@@ -1108,15 +953,13 @@ rijndael_key_setup_dec(uint32_t rk[], const uint32_t cipherKey[], int keyBits)
  * keyBits	AES key size (128, 192, or 256 bits)
  */
 static void
-aes_setupkeys(aes_key_t *key, const uint32_t *keyarr32, int keybits)
+aes_generic_generate(aes_key_t *key, const uint32_t *keyarr32, int keybits)
 {
 	key->nr = rijndael_key_setup_enc(&(key->encr_ks.ks32[0]), keyarr32,
 	    keybits);
 	key->nr = rijndael_key_setup_dec(&(key->decr_ks.ks32[0]), keyarr32,
 	    keybits);
-	key->type = AES_32BIT_KS;
 }
-
 
 /*
  * Encrypt one block of data. The block is assumed to be an array
@@ -1133,7 +976,7 @@ aes_setupkeys(aes_key_t *key, const uint32_t *keyarr32, int keybits)
  * ct	Output block (crypto text).  Can overlap with pt
  */
 static void
-rijndael_encrypt(const uint32_t rk[], int Nr, const uint32_t pt[4],
+aes_generic_encrypt(const uint32_t rk[], int Nr, const uint32_t pt[4],
     uint32_t ct[4])
 {
 	uint32_t	s0, s1, s2, s3, t0, t1, t2, t3;
@@ -1261,7 +1104,7 @@ rijndael_encrypt(const uint32_t rk[], int Nr, const uint32_t pt[4],
  * pt	Output block (plain text). Can overlap with pt
  */
 static void
-rijndael_decrypt(const uint32_t rk[], int Nr, const uint32_t ct[4],
+aes_generic_decrypt(const uint32_t rk[], int Nr, const uint32_t ct[4],
     uint32_t pt[4])
 {
 	uint32_t s0, s1, s2, s3, t0, t1, t2, t3;
@@ -1371,404 +1214,29 @@ rijndael_decrypt(const uint32_t rk[], int Nr, const uint32_t ct[4],
 	    rk[3];
 	pt[3] = s3;
 }
-#endif	/* __amd64 */
 
-
-/*
- * Initialize AES encryption and decryption key schedules.
- *
- * Parameters:
- * cipherKey	User key
- * keyBits	AES key size (128, 192, or 256 bits)
- * keysched	AES key schedule to be initialized, of type aes_key_t.
- *		Allocated by aes_alloc_keysched().
- */
-void
-aes_init_keysched(const uint8_t *cipherKey, uint_t keyBits, void *keysched)
+static boolean_t
+aes_generic_will_work(void)
 {
-	aes_impl_ops_t	*ops = aes_impl_get_ops();
-	aes_key_t	*newbie = keysched;
-	uint_t		keysize, i, j;
-	union {
-		uint64_t	ka64[4];
-		uint32_t	ka32[8];
-		} keyarr;
-
-	switch (keyBits) {
-	case 128:
-		newbie->nr = 10;
-		break;
-
-	case 192:
-		newbie->nr = 12;
-		break;
-
-	case 256:
-		newbie->nr = 14;
-		break;
-
-	default:
-		/* should never get here */
-		return;
-	}
-	keysize = CRYPTO_BITS2BYTES(keyBits);
-
-	/*
-	 * Generic C implementation requires byteswap for little endian
-	 * machines, various accelerated implementations for various
-	 * architectures may not.
-	 */
-	if (!ops->needs_byteswap) {
-		/* no byteswap needed */
-		if (IS_P2ALIGNED(cipherKey, sizeof (uint64_t))) {
-			for (i = 0, j = 0; j < keysize; i++, j += 8) {
-				/* LINTED: pointer alignment */
-				keyarr.ka64[i] = *((uint64_t *)&cipherKey[j]);
-			}
-		} else {
-			bcopy(cipherKey, keyarr.ka32, keysize);
-		}
-	} else {
-		/* byte swap */
-		for (i = 0, j = 0; j < keysize; i++, j += 4) {
-			keyarr.ka32[i] =
-			    htonl(*(uint32_t *)(void *)&cipherKey[j]);
-		}
-	}
-
-	ops->generate(newbie, keyarr.ka32, keyBits);
-	newbie->ops = ops;
-
-	/*
-	 * Note: if there are systems that need the AES_64BIT_KS type in the
-	 * future, move setting key schedule type to individual implementations
-	 */
-	newbie->type = AES_32BIT_KS;
+	return (B_TRUE);
 }
 
-
 /*
- * Encrypt one block using AES.
- * Align if needed and (for x86 32-bit only) byte-swap.
+ * For _LITTLE_ENDIAN machines, reverse every 4 bytes in the key.
+ * On _BIG_ENDIAN, copy the key without reversing bytes.
  *
- * Parameters:
- * ks	Key schedule, of type aes_key_t
- * pt	Input block (plain text)
- * ct	Output block (crypto text).  Can overlap with pt
+ * SPARCv8/v9 uses a key schedule array with 64-bit elements.
+ * X86/AMD64  uses a key schedule array with 32-bit elements.
  */
-int
-aes_encrypt_block(const void *ks, const uint8_t *pt, uint8_t *ct)
-{
-	aes_key_t	*ksch = (aes_key_t *)ks;
-	const aes_impl_ops_t	*ops = ksch->ops;
-
-	if (IS_P2ALIGNED2(pt, ct, sizeof (uint32_t)) && !ops->needs_byteswap) {
-		/* LINTED:  pointer alignment */
-		ops->encrypt(&ksch->encr_ks.ks32[0], ksch->nr,
-		    /* LINTED:  pointer alignment */
-		    (uint32_t *)pt, (uint32_t *)ct);
-	} else {
-		uint32_t buffer[AES_BLOCK_LEN / sizeof (uint32_t)];
-
-		/* Copy input block into buffer */
-		if (ops->needs_byteswap) {
-			buffer[0] = htonl(*(uint32_t *)(void *)&pt[0]);
-			buffer[1] = htonl(*(uint32_t *)(void *)&pt[4]);
-			buffer[2] = htonl(*(uint32_t *)(void *)&pt[8]);
-			buffer[3] = htonl(*(uint32_t *)(void *)&pt[12]);
-		} else
-			bcopy(pt, &buffer, AES_BLOCK_LEN);
-
-		ops->encrypt(&ksch->encr_ks.ks32[0], ksch->nr, buffer, buffer);
-
-		/* Copy result from buffer to output block */
-		if (ops->needs_byteswap) {
-			*(uint32_t *)(void *)&ct[0] = htonl(buffer[0]);
-			*(uint32_t *)(void *)&ct[4] = htonl(buffer[1]);
-			*(uint32_t *)(void *)&ct[8] = htonl(buffer[2]);
-			*(uint32_t *)(void *)&ct[12] = htonl(buffer[3]);
-		} else
-			bcopy(&buffer, ct, AES_BLOCK_LEN);
-	}
-	return (CRYPTO_SUCCESS);
-}
-
-
-/*
- * Decrypt one block using AES.
- * Align and byte-swap if needed.
- *
- * Parameters:
- * ks	Key schedule, of type aes_key_t
- * ct	Input block (crypto text)
- * pt	Output block (plain text). Can overlap with pt
- */
-int
-aes_decrypt_block(const void *ks, const uint8_t *ct, uint8_t *pt)
-{
-	aes_key_t	*ksch = (aes_key_t *)ks;
-	const aes_impl_ops_t	*ops = ksch->ops;
-
-	if (IS_P2ALIGNED2(ct, pt, sizeof (uint32_t)) && !ops->needs_byteswap) {
-		/* LINTED:  pointer alignment */
-		ops->decrypt(&ksch->decr_ks.ks32[0], ksch->nr,
-		    /* LINTED:  pointer alignment */
-		    (uint32_t *)ct, (uint32_t *)pt);
-	} else {
-		uint32_t buffer[AES_BLOCK_LEN / sizeof (uint32_t)];
-
-		/* Copy input block into buffer */
-		if (ops->needs_byteswap) {
-			buffer[0] = htonl(*(uint32_t *)(void *)&ct[0]);
-			buffer[1] = htonl(*(uint32_t *)(void *)&ct[4]);
-			buffer[2] = htonl(*(uint32_t *)(void *)&ct[8]);
-			buffer[3] = htonl(*(uint32_t *)(void *)&ct[12]);
-		} else
-			bcopy(ct, &buffer, AES_BLOCK_LEN);
-
-		ops->decrypt(&ksch->decr_ks.ks32[0], ksch->nr, buffer, buffer);
-
-		/* Copy result from buffer to output block */
-		if (ops->needs_byteswap) {
-			*(uint32_t *)(void *)&pt[0] = htonl(buffer[0]);
-			*(uint32_t *)(void *)&pt[4] = htonl(buffer[1]);
-			*(uint32_t *)(void *)&pt[8] = htonl(buffer[2]);
-			*(uint32_t *)(void *)&pt[12] = htonl(buffer[3]);
-		} else
-			bcopy(&buffer, pt, AES_BLOCK_LEN);
-	}
-	return (CRYPTO_SUCCESS);
-}
-
-
-/*
- * Allocate key schedule for AES.
- *
- * Return the pointer and set size to the number of bytes allocated.
- * Memory allocated must be freed by the caller when done.
- *
- * Parameters:
- * size		Size of key schedule allocated, in bytes
- * kmflag	Flag passed to kmem_alloc(9F); ignored in userland.
- */
-/* ARGSUSED */
-void *
-aes_alloc_keysched(uint32_t *size, int kmflag)
-{
-	aes_key_t *keysched;
-
-	keysched = (aes_key_t *)kmem_alloc(sizeof (aes_key_t), kmflag);
-	if (keysched != NULL) {
-		*size = sizeof (aes_key_t);
-		return (keysched);
-	}
-	return (NULL);
-}
-
-/* AES implementation that contains the fastest methods */
-static aes_impl_ops_t aes_fastest_impl = {
-	.name = "fastest"
-};
-
-/* All compiled in implementations */
-const aes_impl_ops_t *aes_all_impl[] = {
-	&aes_generic_impl,
-#if defined(__x86_64)
-	&aes_x86_64_impl,
-#endif
-#if defined(__x86_64) && defined(HAVE_AES)
-	&aes_aesni_impl,
-#endif
-};
-
-/* Indicate that benchmark has been completed */
-static boolean_t aes_impl_initialized = B_FALSE;
-
-/* Select aes implementation */
-#define	IMPL_FASTEST	(UINT32_MAX)
-#define	IMPL_CYCLE	(UINT32_MAX-1)
-
-#define	AES_IMPL_READ(i) (*(volatile uint64_t *) &(i))
-
-static uint64_t icp_aes_impl = IMPL_FASTEST;
-static uint64_t user_sel_impl = IMPL_FASTEST;
-
-/* Hold all supported implementations */
-static size_t aes_supp_impl_cnt = 0;
-static aes_impl_ops_t *aes_supp_impl[ARRAY_SIZE(aes_all_impl)];
-
-/*
- * Selects the aes operations for encrypt/decrypt/key setup
- */
-aes_impl_ops_t *
-aes_impl_get_ops()
-{
-	aes_impl_ops_t *ops = NULL;
-	const uint64_t impl = AES_IMPL_READ(icp_aes_impl);
-
-	switch (impl) {
-	case IMPL_FASTEST:
-		ASSERT(aes_impl_initialized);
-		ops = &aes_fastest_impl;
-		break;
-	case IMPL_CYCLE:
-	{
-		ASSERT(aes_impl_initialized);
-		ASSERT3U(aes_supp_impl_cnt, >, 0);
-		/* Cycle through supported implementations */
-		static size_t cycle_impl_idx = 0;
-		size_t idx = (++cycle_impl_idx) % aes_supp_impl_cnt;
-		ops = aes_supp_impl[idx];
-	}
-	break;
-	default:
-		ASSERT3U(impl, <, aes_supp_impl_cnt);
-		ASSERT3U(aes_supp_impl_cnt, >, 0);
-		if (impl < ARRAY_SIZE(aes_all_impl))
-			ops = aes_supp_impl[impl];
-		break;
-	}
-
-	ASSERT3P(ops, !=, NULL);
-
-	return (ops);
-}
-
-void
-aes_impl_init(void)
-{
-	aes_impl_ops_t *curr_impl;
-	int i, c;
-
-	/* move supported impl into aes_supp_impls */
-	for (i = 0, c = 0; i < ARRAY_SIZE(aes_all_impl); i++) {
-		curr_impl = (aes_impl_ops_t *)aes_all_impl[i];
-
-		if (curr_impl->is_supported())
-			aes_supp_impl[c++] = (aes_impl_ops_t *)curr_impl;
-	}
-	aes_supp_impl_cnt = c;
-
-	/* set fastest implementation. assume hardware accelerated is fastest */
-#if defined(__x86_64)
-#if defined(HAVE_AES)
-	if (aes_aesni_impl.is_supported())
-		memcpy(&aes_fastest_impl, &aes_aesni_impl,
-		    sizeof (aes_fastest_impl));
-	else
-#endif
-		memcpy(&aes_fastest_impl, &aes_x86_64_impl,
-		    sizeof (aes_fastest_impl));
+const aes_impl_ops_t aes_generic_impl = {
+	.generate = &aes_generic_generate,
+	.encrypt = &aes_generic_encrypt,
+	.decrypt = &aes_generic_decrypt,
+	.is_supported = &aes_generic_will_work,
+#if defined(_LITTLE_ENDIAN)
+	.needs_byteswap = B_TRUE,
 #else
-	memcpy(&aes_fastest_impl, &aes_generic_impl,
-	    sizeof (aes_fastest_impl));
+	.needs_byteswap = B_FALSE,
 #endif
-
-	strlcpy(aes_fastest_impl.name, "fastest", sizeof(aes_fastest_impl.name));
-
-	/* Finish initialization */
-	atomic_swap_64(&icp_aes_impl, user_sel_impl);
-	aes_impl_initialized = B_TRUE;
-}
-
-static const struct {
-	char *name;
-	uint64_t sel;
-} aes_impl_opts[] = {
-		{ "cycle",	IMPL_CYCLE },
-		{ "fastest",	IMPL_FASTEST },
+	.name = "generic"
 };
-
-/*
- * Function sets desired aes implementation.
- *
- * If we are called before init(), user preference will be saved in
- * user_sel_impl, and applied in later init() call. This occurs when module
- * parameter is specified on module load. Otherwise, directly update
- * icp_aes_impl.
- *
- * @val		Name of aes implementation to use
- * @param	Unused.
- */
-int
-aes_impl_set(const char *val)
-{
-	int err = -EINVAL;
-	char req_name[AES_IMPL_NAME_MAX];
-	uint64_t impl = AES_IMPL_READ(user_sel_impl);
-	size_t i;
-
-	/* sanitize input */
-	i = strnlen(val, AES_IMPL_NAME_MAX);
-	if (i == 0 || i >= AES_IMPL_NAME_MAX)
-		return (err);
-
-	strlcpy(req_name, val, AES_IMPL_NAME_MAX);
-	while (i > 0 && isspace(req_name[i-1]))
-		i--;
-	req_name[i] = '\0';
-
-	/* Check mandatory options */
-	for (i = 0; i < ARRAY_SIZE(aes_impl_opts); i++) {
-		if (strcmp(req_name, aes_impl_opts[i].name) == 0) {
-			impl = aes_impl_opts[i].sel;
-			err = 0;
-			break;
-		}
-	}
-
-	/* check all supported impl if init() was already called */
-	if (err != 0 && aes_impl_initialized) {
-		/* check all supported implementations */
-		for (i = 0; i < aes_supp_impl_cnt; i++) {
-			if (strcmp(req_name, aes_supp_impl[i]->name) == 0) {
-				impl = i;
-				err = 0;
-				break;
-			}
-		}
-	}
-
-	if (err == 0) {
-		if (aes_impl_initialized)
-			atomic_swap_64(&icp_aes_impl, impl);
-		else
-			atomic_swap_64(&user_sel_impl, impl);
-	}
-
-	return (err);
-}
-
-#if defined(_KERNEL)
-
-int
-icp_aes_impl_set(const char *val)
-{
-	return (aes_impl_set(val));
-}
-
-int
-icp_aes_impl_get(char *buffer, int max)
-{
-	int i, cnt = 0;
-	char *fmt;
-	const uint64_t impl = AES_IMPL_READ(icp_aes_impl);
-
-	ASSERT(aes_impl_initialized);
-
-	/* list mandatory options */
-	for (i = 0; i < ARRAY_SIZE(aes_impl_opts); i++) {
-		fmt = (impl == aes_impl_opts[i].sel) ? "[%s] " : "%s ";
-		cnt += snprintf(buffer + cnt, max, fmt, aes_impl_opts[i].name);
-	}
-
-	/* list all supported implementations */
-	for (i = 0; i < aes_supp_impl_cnt; i++) {
-		fmt = (i == impl) ? "[%s] " : "%s ";
-		cnt += snprintf(buffer + cnt, max, fmt, aes_supp_impl[i]->name);
-	}
-
-	return (cnt);
-}
-
-#endif
