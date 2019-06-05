@@ -30,3 +30,25 @@
 #include <sys/sha2.h>
 
 #endif	/* _SHA2_H */
+
+uint32_t
+getcpuid()
+{
+	return ((uint32_t)cpu_number());
+}
+
+unsigned long long spl_cpuid_features(void)
+{
+	i386_cpu_info_t *info;
+
+	info = cpuid_info();
+	return info->cpuid_features;
+}
+
+unsigned long long spl_cpuid_leaf7_features(void)
+{
+	i386_cpu_info_t *info;
+
+	info = cpuid_info();
+	return info->cpuid_leaf7_features;
+}
