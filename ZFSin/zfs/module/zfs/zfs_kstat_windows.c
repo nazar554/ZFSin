@@ -401,18 +401,18 @@ static int osx_kstat_update(kstat_t *ksp, int rw)
 
 		// Check if string has changed (from KREAD), if so, update.
 		if (strcmp(vdev_raidz_string,
-				ks->zfs_vdev_raidz_impl.value.string.addr.ptr) != 0)
-			zfs_vdev_raidz_impl_set(ks->zfs_vdev_raidz_impl.value.string.addr.ptr);
+				ks->zfs_vdev_raidz_impl.value.str.addr.ptr) != 0)
+			zfs_vdev_raidz_impl_set(ks->zfs_vdev_raidz_impl.value.str.addr.ptr);
 
-		if (strcmp(icp_gcm_string, ks->icp_gcm_impl.value.string.addr.ptr) != 0)
-			icp_gcm_impl_set(ks->icp_gcm_impl.value.string.addr.ptr);
+		if (strcmp(icp_gcm_string, ks->icp_gcm_impl.value.str.addr.ptr) != 0)
+			icp_gcm_impl_set(ks->icp_gcm_impl.value.str.addr.ptr);
 
-		if (strcmp(icp_aes_string, ks->icp_aes_impl.value.string.addr.ptr) != 0)
-			icp_aes_impl_set(ks->icp_aes_impl.value.string.addr.ptr);
+		if (strcmp(icp_aes_string, ks->icp_aes_impl.value.str.addr.ptr) != 0)
+			icp_aes_impl_set(ks->icp_aes_impl.value.str.addr.ptr);
 
 		if (strcmp(zfs_fletcher_4_string,
-				ks->zfs_fletcher_4_impl.value.string.addr.ptr) != 0)
-			zfs_fletcher_4_impl_set(ks->zfs_fletcher_4_impl.value.string.addr.ptr);
+				ks->zfs_fletcher_4_impl.value.str.addr.ptr) != 0)
+			zfs_fletcher_4_impl_set(ks->zfs_fletcher_4_impl.value.str.addr.ptr);
 
 	} else {
 

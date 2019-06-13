@@ -1595,7 +1595,8 @@ static uint64_t user_sel_impl = IMPL_FASTEST;
 
 /* Hold all supported implementations */
 static size_t aes_supp_impl_cnt = 0;
-static aes_impl_ops_t *aes_supp_impl[ARRAY_SIZE(aes_all_impl)];
+//static aes_impl_ops_t *aes_supp_impl[ARRAY_SIZE(aes_all_impl)];
+static aes_impl_ops_t *aes_supp_impl[_countof(aes_all_impl)];
 
 /*
  * Selects the aes operations for encrypt/decrypt/key setup

@@ -1343,7 +1343,6 @@ abd_cmp(abd_t *dabd, abd_t *sabd, size_t size)
 	return (abd_iterate_func2(dabd, sabd, 0, 0, size, abd_cmp_cb, NULL));
 }
 
-#ifdef _WIN32
 /*
  * Iterate over code ABDs and a data ABD and call @func_raidz_gen.
  *
@@ -1518,7 +1517,7 @@ abd_raidz_rec_iterate(abd_t **cabds, abd_t **tabds,
 #endif
 }
 
-#ifdef __APPLE__
+#ifdef _WIN32
 
 /*
  * make a new abd structure with key fields identical to source abd

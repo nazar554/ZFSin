@@ -34,6 +34,46 @@
 extern "C" {
 #endif
 
+
+#ifdef _WIN32
+	/*
+	 * Ordinarily, configure.ac will work out the toolchain abilities of the compiler,
+	 * but we will list them statically per version of LLVM used.
+	 */
+#if defined(__clang_major__)
+#if (__clang_major__ >= 8) 
+
+	 /* Define if host toolchain supports AES */
+#define HAVE_AES 1
+/* Define if host toolchain supports AVX */
+#define HAVE_AVX 1
+#define HAVE_AVX2 1
+#define HAVE_AVX512BW 1
+#define HAVE_AVX512CD 1
+#define HAVE_AVX512DQ 1
+#define HAVE_AVX512ER 1
+#define HAVE_AVX512F 1
+#define HAVE_AVX512IFMA 1
+#define HAVE_AVX512PF 1
+#define HAVE_AVX512VBMI 1
+#define HAVE_AVX512VL 1
+#define HAVE_SSE 1
+#define HAVE_SSE2 1
+#define HAVE_SSE3 1
+#define HAVE_SSE4_1 1
+#define HAVE_SSE4_2 1
+#define HAVE_SSSE3 1
+
+#endif // major >= 8
+
+// Valid assembler, use it
+#define _ASM
+
+#endif // clang
+#endif // WIN32
+
+#define _ASM
+
 #ifdef _ASM	/* The remainder of this file is only for assembly files */
 
 /*
@@ -77,6 +117,9 @@ extern "C" {
  * C pointers are different sizes between i386 and amd64.
  * These constants can be used to compute offsets into pointer arrays.
  */
+#ifndef __amd64
+#define __amd64
+#endif
 #if defined(__amd64)
 #define	CLONGSHIFT	3
 #define	CLONGSIZE	8
@@ -102,7 +145,7 @@ extern "C" {
 #error	"inconsistent mask constants"
 #endif
 
-#define	ASM_ENTRY_ALIGN	16
+#define	ASM_ENTRY_ALIGN	4, 0x90
 
 /*
  * SSE register alignment and save areas
@@ -110,6 +153,7 @@ extern "C" {
 
 #define	XMM_SIZE	16
 #define	XMM_ALIGN	16
+#define	XMM_ALIGN_LOG	4, 0x90
 
 #if defined(__amd64)
 
@@ -180,8 +224,6 @@ extern "C" {
 /* CSTYLED */ \
 	.weak	_/**/sym; \
 /* CSTYLED */ \
-	.type	_/**/sym, @stype; \
-/* CSTYLED */ \
 _/**/sym = sym
 
 /*
@@ -190,7 +232,6 @@ _/**/sym = sym
  */
 #define	ANSI_PRAGMA_WEAK2(sym1, sym2, stype)	\
 	.weak	sym1; \
-	.type sym1, @stype; \
 sym1	= sym2
 
 /*
@@ -201,22 +242,25 @@ sym1	= sym2
 #define	ENTRY(x) \
 	.text; \
 	.align	ASM_ENTRY_ALIGN; \
+	.globl	_##x; \
 	.globl	x; \
-	.type	x, @function; \
+_##x:	; \
 x:	MCOUNT(x)
 
 #define	ENTRY_NP(x) \
 	.text; \
 	.align	ASM_ENTRY_ALIGN; \
+	.globl	_##x; \
 	.globl	x; \
-	.type	x, @function; \
+_##x:	; \
 x:
 
 #define	RTENTRY(x) \
 	.text; \
 	.align	ASM_ENTRY_ALIGN; \
+	.globl	_##x; \
 	.globl	x; \
-	.type	x, @function; \
+_##x:	; \
 x:	RTMCOUNT(x)
 
 /*
@@ -225,20 +269,22 @@ x:	RTMCOUNT(x)
 #define	ENTRY2(x, y) \
 	.text; \
 	.align	ASM_ENTRY_ALIGN; \
+	.globl	_##x, _##y; \
 	.globl	x, y; \
-	.type	x, @function; \
-	.type	y, @function; \
 /* CSTYLED */ \
+_##x:	; \
+_##y:	; \
 x:	; \
 y:	MCOUNT(x)
 
 #define	ENTRY_NP2(x, y) \
 	.text; \
 	.align	ASM_ENTRY_ALIGN; \
+	.globl	_##x, _##y; \
 	.globl	x, y; \
-	.type	x, @function; \
-	.type	y, @function; \
 /* CSTYLED */ \
+_##x:	; \
+_##y:	; \
 x:	; \
 y:
 
@@ -247,8 +293,9 @@ y:
  * ALTENTRY provides for additional entry points.
  */
 #define	ALTENTRY(x) \
+	.globl	_##x; \
 	.globl x; \
-	.type	x, @function; \
+_##x:	; \
 x:
 
 /*
@@ -264,7 +311,6 @@ x:
 #define	DGDEF2(name, sz) \
 	.data; \
 	.globl	name; \
-	.type	name, @object; \
 	.size	name, sz; \
 name:
 
@@ -272,7 +318,6 @@ name:
 	.data; \
 	.align	algn; \
 	.globl	name; \
-	.type	name, @object; \
 	.size	name, sz; \
 name:
 
@@ -281,8 +326,7 @@ name:
 /*
  * SET_SIZE trails a function and set the size for the ELF symbol table.
  */
-#define	SET_SIZE(x) \
-	.size	x, [.-x]
+#define	SET_SIZE(x)
 
 /*
  * NWORD provides native word value.

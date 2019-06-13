@@ -63,16 +63,21 @@ void fletcher_4_init(void);
 void fletcher_4_fini(void);
 
 
+// Handle both kind of aligns.
+#if defined(__clang__)
+#define __declspec(X) 
+#else
+#define __attribute__(X)
+#endif
 
 /* Internal fletcher ctx */
-
 typedef struct zfs_fletcher_superscalar {
 	uint64_t v[4];
 } zfs_fletcher_superscalar_t;
 
 typedef struct zfs_fletcher_sse {
 	uint64_t v[2] __attribute__((aligned(16)));
-} zfs_fletcher_sse_t;
+} __declspec(align(16)) zfs_fletcher_sse_t;
 
 typedef struct zfs_fletcher_avx {
 	uint64_t v[4] __attribute__((aligned(32)));

@@ -736,7 +736,8 @@ static uint64_t user_sel_impl = IMPL_FASTEST;
 
 /* Hold all supported implementations */
 static size_t gcm_supp_impl_cnt = 0;
-static gcm_impl_ops_t *gcm_supp_impl[ARRAY_SIZE(gcm_all_impl)];
+//static gcm_impl_ops_t *gcm_supp_impl[ARRAY_SIZE(gcm_all_impl)];
+static gcm_impl_ops_t *gcm_supp_impl[_countof(gcm_all_impl)];
 
 /*
  * Selects the gcm operation

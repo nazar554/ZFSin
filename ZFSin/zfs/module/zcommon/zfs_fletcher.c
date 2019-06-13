@@ -190,7 +190,8 @@ static const fletcher_4_ops_t *fletcher_4_impls[] = {
 
 /* Hold all supported implementations */
 static uint32_t fletcher_4_supp_impls_cnt = 0;
-static fletcher_4_ops_t *fletcher_4_supp_impls[ARRAY_SIZE(fletcher_4_impls)];
+//static fletcher_4_ops_t *fletcher_4_supp_impls[ARRAY_SIZE(fletcher_4_impls)];
+static fletcher_4_ops_t *fletcher_4_supp_impls[_countof(fletcher_4_impls)];
 
 /* Select fletcher4 implementation */
 #define	IMPL_FASTEST	(UINT32_MAX)
@@ -219,7 +220,8 @@ static kstat_t *fletcher_4_kstat;
 static struct fletcher_4_kstat {
 	uint64_t native;
 	uint64_t byteswap;
-} fletcher_4_stat_data[ARRAY_SIZE(fletcher_4_impls) + 1];
+//} fletcher_4_stat_data[ARRAY_SIZE(fletcher_4_impls) + 1];
+} fletcher_4_stat_data[_countof(fletcher_4_impls) + 1];
 
 /* Indicate that benchmark has been completed */
 static boolean_t fletcher_4_initialized = B_FALSE;
@@ -563,7 +565,7 @@ fletcher_4_incremental_impl(boolean_t native, const void *buf, uint64_t size,
 		fletcher_4_incremental_combine(zcp, len, &nzc);
 
 		size -= len;
-		buf += len;
+		(uintptr_t)buf += len;
 	}
 }
 
@@ -595,7 +597,7 @@ fletcher_4_incremental_byteswap(void *buf, size_t size, void *data)
 /* Fletcher 4 kstats */
 
 static int
-fletcher_4_kstat_headers(char *buf, size_t size)
+fletcher_4_kstat_headers(char *buf, uint32_t size)
 {
 	ssize_t off = 0;
 
@@ -607,7 +609,7 @@ fletcher_4_kstat_headers(char *buf, size_t size)
 }
 
 static int
-fletcher_4_kstat_data(char *buf, size_t size, void *data)
+fletcher_4_kstat_data(char *buf, uint32_t size, void *data)
 {
 	struct fletcher_4_kstat *fastest_stat =
 	    &fletcher_4_stat_data[fletcher_4_supp_impls_cnt];

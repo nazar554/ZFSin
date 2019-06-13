@@ -33,9 +33,6 @@ extern "C" {
 
 struct zio;
 struct raidz_map;
-#if !defined(_KERNEL)
-struct kernel_param {};
-#endif
 
 /*
  * vdev_raidz interface
