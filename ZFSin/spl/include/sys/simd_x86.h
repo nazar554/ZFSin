@@ -74,11 +74,11 @@
 
 #include <sys/types.h>
 
-#include <cpuid.h>
+//#include <cpuid.h>
 
 #if defined(_KERNEL)
-#include <i386/cpuid.h>
-#include <i386/proc_reg.h>
+//#include <i386/cpuid.h>
+//#include <i386/proc_reg.h>
 
 #ifdef __APPLE__
 // XNU fpu.h
