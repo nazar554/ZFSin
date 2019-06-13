@@ -37,17 +37,3 @@ getcpuid()
 	return ((uint32_t)cpu_number());
 }
 
-extern void __cpuid(int* CPUInfo, int InfoType);
-uint64_t spl_cpuid_features(void)
-{
-	int CPUInfo[4] = { -1 };
-	__cpuid(CPUInfo, 0);
-	return 0;
-}
-
-uint64_t spl_cpuid_leaf7_features(void)
-{
-	int registers[4];
-	__cpuidex(registers, 0x7, 0);
-	return 0;
-}
