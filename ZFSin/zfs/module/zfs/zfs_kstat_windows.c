@@ -179,10 +179,12 @@ osx_kstat_t osx_kstat = {
 	{"zfs_send_unmodified_spill_blocks",		KSTAT_DATA_UINT64  },
 	{"zfs_special_class_metadata_reserve_pct",		KSTAT_DATA_UINT64  },
 
+#ifndef _WIN32
 	{"zfs_vdev_raidz_impl",		KSTAT_DATA_STRING  },
 	{"icp_gcm_impl",		KSTAT_DATA_STRING  },
 	{"icp_aes_impl",		KSTAT_DATA_STRING  },
 	{"zfs_fletcher_4_impl",		KSTAT_DATA_STRING  },
+#endif
 
 };
 
@@ -398,7 +400,7 @@ static int osx_kstat_update(kstat_t *ksp, int rw)
 			ks->zfs_send_unmodified_spill_blocks.value.ui64;
 		zfs_special_class_metadata_reserve_pct =
 			ks->zfs_special_class_metadata_reserve_pct.value.ui64;
-
+#ifndef _WIN32
 		// Check if string has changed (from KREAD), if so, update.
 		if (strcmp(vdev_raidz_string,
 				ks->zfs_vdev_raidz_impl.value.str.addr.ptr) != 0)
@@ -413,6 +415,7 @@ static int osx_kstat_update(kstat_t *ksp, int rw)
 		if (strcmp(zfs_fletcher_4_string,
 				ks->zfs_fletcher_4_impl.value.str.addr.ptr) != 0)
 			zfs_fletcher_4_impl_set(ks->zfs_fletcher_4_impl.value.str.addr.ptr);
+#endif
 
 	} else {
 
@@ -600,18 +603,22 @@ static int osx_kstat_update(kstat_t *ksp, int rw)
 			zfs_special_class_metadata_reserve_pct;
 
 		zfs_vdev_raidz_impl_get(vdev_raidz_string, sizeof(vdev_raidz_string));
-		kstat_named_setstr(&ks->zfs_vdev_raidz_impl, vdev_raidz_string);
-
 		icp_gcm_impl_get(icp_gcm_string, sizeof(icp_gcm_string));
-		kstat_named_setstr(&ks->icp_gcm_impl, icp_gcm_string);
-
 		icp_aes_impl_get(icp_aes_string, sizeof(icp_aes_string));
-		kstat_named_setstr(&ks->icp_aes_impl, icp_aes_string);
-
 		zfs_fletcher_4_impl_get(zfs_fletcher_4_string,
 			sizeof(zfs_fletcher_4_string));
-		kstat_named_setstr(&ks->zfs_fletcher_4_impl, zfs_fletcher_4_string);
 
+		xprintf("zfs_vdev_raidz_impl_get: %s\n", vdev_raidz_string);
+		xprintf("icp_gcm_impl_get: %s\n", icp_gcm_string);
+		xprintf("icp_aes_impl_get: %s\n", icp_aes_string);
+		xprintf("zfs_fletcher_4_impl_get: %s\n", zfs_fletcher_4_string);
+
+#ifndef _WIN32
+		kstat_named_setstr(&ks->zfs_vdev_raidz_impl, vdev_raidz_string);
+		kstat_named_setstr(&ks->icp_gcm_impl, icp_gcm_string);
+		kstat_named_setstr(&ks->icp_aes_impl, icp_aes_string);
+		kstat_named_setstr(&ks->zfs_fletcher_4_impl, zfs_fletcher_4_string);
+#endif
 	}
 
 	return 0;

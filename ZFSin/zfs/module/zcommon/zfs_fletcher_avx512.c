@@ -22,6 +22,8 @@
  * Copyright (C) 2016 Gvozden Nešković. All rights reserved.
  */
 
+#include <sys/isa_defs.h>
+
 #if defined(__x86_64) && defined(HAVE_AVX512F)
 
 #include <sys/simd_x86.h>

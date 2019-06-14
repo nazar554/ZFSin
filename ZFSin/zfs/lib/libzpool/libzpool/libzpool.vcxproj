@@ -65,6 +65,11 @@
     <ClCompile Include="..\..\..\module\zcommon\zfs_comutil.c" />
     <ClCompile Include="..\..\..\module\zcommon\zfs_deleg.c" />
     <ClCompile Include="..\..\..\module\zcommon\zfs_fletcher.c" />
+    <ClCompile Include="..\..\..\module\zcommon\zfs_fletcher_avx512.c" />
+    <ClCompile Include="..\..\..\module\zcommon\zfs_fletcher_intel.c" />
+    <ClCompile Include="..\..\..\module\zcommon\zfs_fletcher_sse.c" />
+    <ClCompile Include="..\..\..\module\zcommon\zfs_fletcher_superscalar.c" />
+    <ClCompile Include="..\..\..\module\zcommon\zfs_fletcher_superscalar4.c" />
     <ClCompile Include="..\..\..\module\zcommon\zfs_namecheck.c" />
     <ClCompile Include="..\..\..\module\zcommon\zfs_prop.c" />
     <ClCompile Include="..\..\..\module\zcommon\zfs_uio.c" />
@@ -147,6 +152,13 @@
     <ClCompile Include="..\..\..\module\zfs\vdev_missing.c" />
     <ClCompile Include="..\..\..\module\zfs\vdev_queue.c" />
     <ClCompile Include="..\..\..\module\zfs\vdev_raidz.c" />
+    <ClCompile Include="..\..\..\module\zfs\vdev_raidz_math.c" />
+    <ClCompile Include="..\..\..\module\zfs\vdev_raidz_math_avx2.c" />
+    <ClCompile Include="..\..\..\module\zfs\vdev_raidz_math_avx512bw.c" />
+    <ClCompile Include="..\..\..\module\zfs\vdev_raidz_math_avx512f.c" />
+    <ClCompile Include="..\..\..\module\zfs\vdev_raidz_math_scalar.c" />
+    <ClCompile Include="..\..\..\module\zfs\vdev_raidz_math_sse2.c" />
+    <ClCompile Include="..\..\..\module\zfs\vdev_raidz_math_ssse3.c" />
     <ClCompile Include="..\..\..\module\zfs\vdev_removal.c" />
     <ClCompile Include="..\..\..\module\zfs\vdev_root.c" />
     <ClCompile Include="..\..\..\module\zfs\vdev_trim.c" />
@@ -195,6 +207,9 @@
     <ProjectReference Include="..\..\zlib-1.2.3\contrib\vstudio\vc8\zlibstat.vcxproj">
       <Project>{745dec58-ebb3-47a9-a9b8-4c6627c01bf8}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\module\zfs\vdev_raidz_math_impl.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{6352BFDB-D45E-47FD-BDE8-F9320CAECF9B}</ProjectGuid>

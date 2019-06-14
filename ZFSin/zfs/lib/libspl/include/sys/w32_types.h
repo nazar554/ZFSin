@@ -205,4 +205,11 @@ int kobj_get_filesize(struct _buf *file, uint64_t *size);
 
 int nanosleep(const struct timespec *rqtp, struct timespec *rmtp);
 
+// Handle both kind of aligns.
+#if defined(__clang__)
+#define __declspec(X)
+#else
+#define __attribute__(X)
+#endif
+
 #endif

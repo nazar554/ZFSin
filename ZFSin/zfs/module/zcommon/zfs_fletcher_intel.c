@@ -40,6 +40,8 @@
  * SOFTWARE.
  */
 
+#include <sys/isa_defs.h>
+
 #if defined(HAVE_AVX) && defined(HAVE_AVX2)
 
 #include <sys/simd_x86.h>

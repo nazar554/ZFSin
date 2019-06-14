@@ -27,50 +27,14 @@
 #ifndef _IA32_SYS_ASM_LINKAGE_H
 #define	_IA32_SYS_ASM_LINKAGE_H
 
-#include <sys/stack.h>
-#include <sys/trap.h>
+//#include <sys/stack.h>
+//#include <sys/trap.h>
 
 #ifdef	__cplusplus
 extern "C" {
 #endif
 
-
-#ifdef _WIN32
-	/*
-	 * Ordinarily, configure.ac will work out the toolchain abilities of the compiler,
-	 * but we will list them statically per version of LLVM used.
-	 */
-#if defined(__clang_major__)
-#if (__clang_major__ >= 8) 
-
-	 /* Define if host toolchain supports AES */
-#define HAVE_AES 1
-/* Define if host toolchain supports AVX */
-#define HAVE_AVX 1
-#define HAVE_AVX2 1
-#define HAVE_AVX512BW 1
-#define HAVE_AVX512CD 1
-#define HAVE_AVX512DQ 1
-#define HAVE_AVX512ER 1
-#define HAVE_AVX512F 1
-#define HAVE_AVX512IFMA 1
-#define HAVE_AVX512PF 1
-#define HAVE_AVX512VBMI 1
-#define HAVE_AVX512VL 1
-#define HAVE_SSE 1
-#define HAVE_SSE2 1
-#define HAVE_SSE3 1
-#define HAVE_SSE4_1 1
-#define HAVE_SSE4_2 1
-#define HAVE_SSSE3 1
-
-#endif // major >= 8
-
-// Valid assembler, use it
-#define _ASM
-
-#endif // clang
-#endif // WIN32
+#include <sys/isa_defs.h>
 
 #define _ASM
 

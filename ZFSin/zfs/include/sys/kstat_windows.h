@@ -147,11 +147,12 @@ typedef struct osx_kstat {
 	kstat_named_t win32_hw_hostid;
 	kstat_named_t zfs_send_unmodified_spill_blocks;
 	kstat_named_t zfs_special_class_metadata_reserve_pct;
-
+#ifndef _WIN32
 	kstat_named_t zfs_vdev_raidz_impl;
 	kstat_named_t icp_gcm_impl;
 	kstat_named_t icp_aes_impl;
 	kstat_named_t zfs_fletcher_4_impl;
+#endif
 } osx_kstat_t;
 
 

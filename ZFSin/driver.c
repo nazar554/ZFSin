@@ -55,8 +55,6 @@ NTSTATUS DriverEntry(_In_ PDRIVER_OBJECT  DriverObject, _In_ PUNICODE_STRING pRe
 	
 	spl_start();
 
-	kstat_osx_init(pRegistryPath);
-
 	/*
 	 * Initialise storport for the ZVOL virtual disks. This also
 	 * sets the Driver Callbacks, so we make a copy of them, so
@@ -80,6 +78,8 @@ NTSTATUS DriverEntry(_In_ PDRIVER_OBJECT  DriverObject, _In_ PUNICODE_STRING pRe
 	WIN_DriverObject->DriverUnload = ZFSin_Fini;
 
 	zfs_start();
+
+	kstat_osx_init(pRegistryPath);
 
 	KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "ZFSin: Started\n"));
 	return STATUS_SUCCESS;

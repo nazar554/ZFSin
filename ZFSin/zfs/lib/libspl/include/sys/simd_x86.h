@@ -74,9 +74,10 @@
 
 #include <sys/types.h>
 
-#include <cpuid.h>
 
 #if defined(_KERNEL)
+#include <cpuid.h>
+
 #include <i386/cpuid.h>
 #include <i386/proc_reg.h>
 
@@ -107,6 +108,7 @@ extern uint64_t spl_cpuid_leaf7_features(void);
 #if !defined(_KERNEL)
 
 #include <assert.h>
+#include <sys/w32_types.h>
 
 #define	ZFS_ASM_BUG()	{ assert(0); } break
 
@@ -207,13 +209,7 @@ static const cpuid_feature_desc_t spl_cpuid_features[] = {
 static inline uint64_t
 xgetbv(uint32_t index)
 {
-	uint32_t eax, edx;
-	/* xgetbv - instruction byte code */
-	__asm__ __volatile__(".byte 0x0f; .byte 0x01; .byte 0xd0"
-	    : "=a" (eax), "=d" (edx)
-	    : "c" (index));
-
-	return ((((uint64_t)edx)<<32) | (uint64_t)eax);
+	return _xgetbv(index);
 }
 
 /*

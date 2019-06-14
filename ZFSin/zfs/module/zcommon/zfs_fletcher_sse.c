@@ -41,6 +41,8 @@
  * SOFTWARE.
  */
 
+#include <sys/isa_defs.h>
+
 #if defined(HAVE_SSE2)
 
 #include <sys/simd_x86.h>

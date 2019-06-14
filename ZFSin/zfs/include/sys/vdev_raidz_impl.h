@@ -282,9 +282,9 @@ typedef enum raidz_mul_info {
 /*
  * Powers of 2 in the Galois field.
  */
-extern const uint8_t vdev_raidz_pow2[256] __attribute__((aligned(256)));
+extern const uint8_t __declspec(align(256)) vdev_raidz_pow2[256] __attribute__((aligned(256)));
 /* Logs of 2 in the Galois field defined above. */
-extern const uint8_t vdev_raidz_log2[256] __attribute__((aligned(256)));
+extern const uint8_t __declspec(align(256)) vdev_raidz_log2[256] __attribute__((aligned(256)));
 
 /*
  * Multiply a given number by 2 raised to the given power.

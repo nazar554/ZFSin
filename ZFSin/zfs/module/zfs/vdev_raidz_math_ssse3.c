@@ -26,7 +26,7 @@
 
 #if defined(__x86_64) && defined(HAVE_SSSE3)
 
-#include <sys/types.h>
+//#include <sys/types.h>
 #include <sys/simd_x86.h>
 
 #define	__asm __asm__ __volatile__

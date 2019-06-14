@@ -62,14 +62,6 @@ int fletcher_4_impl_set(const char *selector);
 void fletcher_4_init(void);
 void fletcher_4_fini(void);
 
-
-// Handle both kind of aligns.
-#if defined(__clang__)
-#define __declspec(X) 
-#else
-#define __attribute__(X)
-#endif
-
 /* Internal fletcher ctx */
 typedef struct zfs_fletcher_superscalar {
 	uint64_t v[4];

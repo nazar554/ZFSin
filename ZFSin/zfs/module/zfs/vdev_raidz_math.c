@@ -85,13 +85,15 @@ static uint64_t user_sel_impl = IMPL_FASTEST;
 
 /* Hold all supported implementations */
 static size_t raidz_supp_impl_cnt = 0;
-static raidz_impl_ops_t *raidz_supp_impl[ARRAY_SIZE(raidz_all_maths)];
+//static raidz_impl_ops_t *raidz_supp_impl[ARRAY_SIZE(raidz_all_maths)];
+static raidz_impl_ops_t *raidz_supp_impl[_countof(raidz_all_maths)];
 
 /*
  * kstats values for supported implementations
  * Values represent per disk throughput of 8 disk+parity raidz vdev [B/s]
  */
-static raidz_impl_kstat_t raidz_impl_kstats[ARRAY_SIZE(raidz_all_maths) + 1];
+//static raidz_impl_kstat_t raidz_impl_kstats[ARRAY_SIZE(raidz_all_maths) + 1];
+static raidz_impl_kstat_t raidz_impl_kstats[_countof(raidz_all_maths) + 1];
 
 /* kstat for benchmarked implementations */
 static kstat_t *raidz_math_kstat = NULL;
@@ -276,7 +278,7 @@ const char *raidz_rec_name[] = {
 #define	RAIDZ_KSTAT_LINE_LEN	(17 + 10*12 + 1)
 
 static int
-raidz_math_kstat_headers(char *buf, size_t size)
+raidz_math_kstat_headers(char *buf, uint32_t size)
 {
 	int i;
 	ssize_t off;
@@ -299,7 +301,7 @@ raidz_math_kstat_headers(char *buf, size_t size)
 }
 
 static int
-raidz_math_kstat_data(char *buf, size_t size, void *data)
+raidz_math_kstat_data(char *buf, uint32_t size, void *data)
 {
 	raidz_impl_kstat_t *fstat = &raidz_impl_kstats[raidz_supp_impl_cnt];
 	raidz_impl_kstat_t *cstat = (raidz_impl_kstat_t *)data;

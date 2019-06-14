@@ -68,8 +68,15 @@
 #define	_SIMD_X86_H
 
 #include <sys/isa_defs.h>
+#include <sys/asm_linkage.h>
 
 /* only for __x86 */
+#ifdef _WIN32
+#ifndef __x86
+#define __x86
+#endif
+#endif
+
 #if defined(__x86)
 
 #include <sys/types.h>
@@ -77,21 +84,12 @@
 //#include <cpuid.h>
 
 #if defined(_KERNEL)
-//#include <i386/cpuid.h>
+#include <sys/processor.h>
 //#include <i386/proc_reg.h>
 
-#ifdef __APPLE__
-// XNU fpu.h
-static inline uint64_t xgetbv(uint32_t c) {
-        uint32_t        mask_hi, mask_lo;
-        __asm__ __volatile__("xgetbv" : "=a"(mask_lo), "=d"(mask_hi) : "c" (c));
-        return ((uint64_t) mask_hi<<32) + (uint64_t) mask_lo;
-}
-
+#ifdef _WIN32
+#define xgetbv _xgetbv
 #endif
-
-extern uint64_t spl_cpuid_features(void);
-extern uint64_t spl_cpuid_leaf7_features(void);
 
 #define	ZFS_ASM_BUG()	{ ASSERT(0); } break
 
@@ -148,6 +146,11 @@ typedef enum cpuid_inst_sets {
 	AES,
 	PCLMULQDQ
 } cpuid_inst_sets_t;
+
+typedef unsigned char uint8_t;
+typedef unsigned int uint32_t;
+typedef unsigned long long uint64_t;
+typedef enum { B_FALSE = 0, B_TRUE = 1 }        boolean_t;
 
 /*
  * Instruction set descriptor.

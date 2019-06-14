@@ -22,6 +22,8 @@
  * Copyright (c) 2003, 2010, Oracle and/or its affiliates. All rights reserved.
  */
 
+#include <sys/isa_defs.h>
+
 #if defined(__x86_64) && defined(HAVE_AES)
 
 #include <sys/simd_x86.h>

@@ -222,4 +222,11 @@ typedef struct {
 uint32_t fnv_32a_str(const char *str, uint32_t hval);
 uint32_t fnv_32a_buf(void *buf, size_t len, uint32_t hval);
 
+// Handle both kind of aligns.
+#if defined(__clang__)
+#define __declspec(X)
+#else
+#define __attribute__(X)
+#endif
+
 #endif	/* _SPL_TYPES_H */

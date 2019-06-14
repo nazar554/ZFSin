@@ -834,6 +834,51 @@
     <ClCompile Include="zfs\module\icp\algs\aes\aes_impl_x86-64.c">
       <Filter>Source Files\ZFS\module\icp\algs\aes</Filter>
     </ClCompile>
+    <ClCompile Include="zfs\module\icp\asm-x86_64\aes\aeskey.c">
+      <Filter>Source Files\ZFS\module\icp\asm-x86_64\aes</Filter>
+    </ClCompile>
+    <ClCompile Include="zfs\module\icp\algs\modes\gcm_generic.c">
+      <Filter>Source Files\ZFS\module\icp\algs\modes</Filter>
+    </ClCompile>
+    <ClCompile Include="zfs\module\icp\algs\modes\gcm_pclmulqdq.c">
+      <Filter>Source Files\ZFS\module\icp\algs\modes</Filter>
+    </ClCompile>
+    <ClCompile Include="zfs\module\zcommon\zfs_fletcher_avx512.c">
+      <Filter>Source Files\ZFS\module\zcommon</Filter>
+    </ClCompile>
+    <ClCompile Include="zfs\module\zcommon\zfs_fletcher_intel.c">
+      <Filter>Source Files\ZFS\module\zcommon</Filter>
+    </ClCompile>
+    <ClCompile Include="zfs\module\zcommon\zfs_fletcher_sse.c">
+      <Filter>Source Files\ZFS\module\zcommon</Filter>
+    </ClCompile>
+    <ClCompile Include="zfs\module\zcommon\zfs_fletcher_superscalar.c">
+      <Filter>Source Files\ZFS\module\zcommon</Filter>
+    </ClCompile>
+    <ClCompile Include="zfs\module\zcommon\zfs_fletcher_superscalar4.c">
+      <Filter>Source Files\ZFS\module\zcommon</Filter>
+    </ClCompile>
+    <ClCompile Include="zfs\module\zfs\vdev_raidz_math.c">
+      <Filter>Source Files\ZFS\module\zfs</Filter>
+    </ClCompile>
+    <ClCompile Include="zfs\module\zfs\vdev_raidz_math_avx512bw.c">
+      <Filter>Source Files\ZFS\module\zfs</Filter>
+    </ClCompile>
+    <ClCompile Include="zfs\module\zfs\vdev_raidz_math_avx512f.c">
+      <Filter>Source Files\ZFS\module\zfs</Filter>
+    </ClCompile>
+    <ClCompile Include="zfs\module\zfs\vdev_raidz_math_scalar.c">
+      <Filter>Source Files\ZFS\module\zfs</Filter>
+    </ClCompile>
+    <ClCompile Include="zfs\module\zfs\vdev_raidz_math_sse2.c">
+      <Filter>Source Files\ZFS\module\zfs</Filter>
+    </ClCompile>
+    <ClCompile Include="zfs\module\zfs\vdev_raidz_math_ssse3.c">
+      <Filter>Source Files\ZFS\module\zfs</Filter>
+    </ClCompile>
+    <ClCompile Include="zfs\module\zfs\vdev_raidz_math_avx2.c">
+      <Filter>Source Files\ZFS\module\zfs</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="zfs\module\icp\algs\edonr\edonr_byteorder.h">
@@ -934,6 +979,9 @@
     </ClInclude>
     <ClInclude Include="zfs\module\icp\include\sys\crypto\spi.h">
       <Filter>Source Files\ZFS\module\icp\include\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="zfs\module\zfs\vdev_raidz_math_impl.h">
+      <Filter>Source Files\ZFS\module\zfs</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

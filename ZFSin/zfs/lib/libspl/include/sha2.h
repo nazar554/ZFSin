@@ -31,9 +31,4 @@
 
 #endif	/* _SHA2_H */
 
-uint32_t
-getcpuid()
-{
-	return ((uint32_t)cpu_number());
-}
 
