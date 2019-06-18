@@ -63,15 +63,13 @@ uint64_t spl_cpuid_features(void)
 		// CPUInfo[0] has "highest leaf" 
 		__cpuid(CPUInfo, 0);
 
-		DbgBreakPoint();
-
 		if (CPUInfo[0] >= 1) {
 			__cpuidex(registers, 0x1, 0);
 			leaf1_features = ((uint64_t)registers[2]) << 32ULL | registers[3];
 		}
 		if (CPUInfo[0] >= 7) {
 			__cpuidex(registers, 0x7, 0);
-			leaf1_features = ((uint64_t)registers[1]) << 32ULL | registers[2];
+			leaf7_features = ((uint64_t)registers[1]) << 32ULL | registers[2];
 		}
 	}
 	return leaf1_features;
@@ -80,4 +78,15 @@ uint64_t spl_cpuid_features(void)
 uint64_t spl_cpuid_leaf7_features(void)
 {
 	return leaf7_features;
+}
+
+static volatile XSTATE_SAVE SaveState;
+void kfpu_begin(void)
+{
+	VERIFY0(KeSaveExtendedProcessorState(XSTATE_MASK_AVX | XSTATE_MASK_LEGACY_SSE, &SaveState));
+}
+
+void kfpu_end(void)
+{
+	KeRestoreExtendedProcessorState(&SaveState);
 }

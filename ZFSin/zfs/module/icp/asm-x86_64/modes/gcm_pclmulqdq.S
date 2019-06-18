@@ -95,7 +95,7 @@ gcm_mul_pclmulqdq(uint64_t *x_in, uint64_t *y, uint64_t *res) {
 #define _ASM
 #include <sys/asm_linkage.h>
 
-#if defined(_KERNEL) && !defined(__APPLE__)
+#if defined(_KERNEL) && !defined(_WIN32)
 	/*
 	 * Note: the CLTS macro clobbers P2 (%rsi) under i86xpv.  That is,
 	 * it calls HYPERVISOR_fpu_taskswitch() which modifies %rsi when it
@@ -218,6 +218,10 @@ gcm_mul_pclmulqdq(uint64_t *x_in, uint64_t *y, uint64_t *res) {
  *	Parameter 1: %rdi (copied to %xmm0)	x_in
  *	Parameter 2: %rsi (copied to %xmm1)	y
  *	Parameter 3: %rdx (result)		res
+ * WIndows:
+ *	Parameter 1: %rcx (copied to %xmm0)	x_in
+ *	Parameter 2: %rdx (copied to %xmm1)	y
+ *	Parameter 3: %r8  (result)		res
  */
 
 ENTRY_NP(gcm_mul_pclmulqdq)
@@ -226,8 +230,8 @@ ENTRY_NP(gcm_mul_pclmulqdq)
 	//
 	// Copy Parameters
 	//
-	movdqu	(%rdi), %xmm0	// P1
-	movdqu	(%rsi), %xmm1	// P2
+	movdqu	(%rcx), %xmm0	// P1
+	movdqu	(%rdx), %xmm1	// P2
 
 	//
 	// Byte swap 16-byte input
@@ -321,7 +325,7 @@ ENTRY_NP(gcm_mul_pclmulqdq)
 	//
 	// Store the result
 	//
-	movdqu	%xmm6, (%rdx)	// P3
+	movdqu	%xmm6, (%r8)	// P3
 
 
 	//

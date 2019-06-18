@@ -65,9 +65,15 @@
     <ClCompile Include="..\..\..\module\zcommon\zfs_comutil.c" />
     <ClCompile Include="..\..\..\module\zcommon\zfs_deleg.c" />
     <ClCompile Include="..\..\..\module\zcommon\zfs_fletcher.c" />
-    <ClCompile Include="..\..\..\module\zcommon\zfs_fletcher_avx512.c" />
-    <ClCompile Include="..\..\..\module\zcommon\zfs_fletcher_intel.c" />
-    <ClCompile Include="..\..\..\module\zcommon\zfs_fletcher_sse.c" />
+    <CustomBuild Include="..\..\..\module\zcommon\zfs_fletcher_avx512.c">
+      <FileType>CppCode</FileType>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\module\zcommon\zfs_fletcher_intel.c">
+      <FileType>CppCode</FileType>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\module\zcommon\zfs_fletcher_sse.c">
+      <FileType>CppCode</FileType>
+    </CustomBuild>
     <ClCompile Include="..\..\..\module\zcommon\zfs_fletcher_superscalar.c" />
     <ClCompile Include="..\..\..\module\zcommon\zfs_fletcher_superscalar4.c" />
     <ClCompile Include="..\..\..\module\zcommon\zfs_namecheck.c" />
@@ -153,12 +159,22 @@
     <ClCompile Include="..\..\..\module\zfs\vdev_queue.c" />
     <ClCompile Include="..\..\..\module\zfs\vdev_raidz.c" />
     <ClCompile Include="..\..\..\module\zfs\vdev_raidz_math.c" />
-    <ClCompile Include="..\..\..\module\zfs\vdev_raidz_math_avx2.c" />
-    <ClCompile Include="..\..\..\module\zfs\vdev_raidz_math_avx512bw.c" />
-    <ClCompile Include="..\..\..\module\zfs\vdev_raidz_math_avx512f.c" />
+    <CustomBuild Include="..\..\..\module\zfs\vdev_raidz_math_avx2.c">
+      <FileType>CppCode</FileType>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\module\zfs\vdev_raidz_math_avx512bw.c">
+      <FileType>CppCode</FileType>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\module\zfs\vdev_raidz_math_avx512f.c">
+      <FileType>CppCode</FileType>
+    </CustomBuild>
     <ClCompile Include="..\..\..\module\zfs\vdev_raidz_math_scalar.c" />
-    <ClCompile Include="..\..\..\module\zfs\vdev_raidz_math_sse2.c" />
-    <ClCompile Include="..\..\..\module\zfs\vdev_raidz_math_ssse3.c" />
+    <CustomBuild Include="..\..\..\module\zfs\vdev_raidz_math_sse2.c">
+      <FileType>CppCode</FileType>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\module\zfs\vdev_raidz_math_ssse3.c">
+      <FileType>CppCode</FileType>
+    </CustomBuild>
     <ClCompile Include="..\..\..\module\zfs\vdev_removal.c" />
     <ClCompile Include="..\..\..\module\zfs\vdev_root.c" />
     <ClCompile Include="..\..\..\module\zfs\vdev_trim.c" />
@@ -285,6 +301,14 @@
       <PreprocessorDefinitions>__x86_64</PreprocessorDefinitions>
       <RuntimeLibrary />
     </ClCompile>
+    <CustomBuild>
+      <Command>clang  -I$(SolutionDir)/ZFSin/zfs/lib/libspl/include -I$(SolutionDir)/ZFSin/zfs/module/icp/include -I$(SolutionDir)/ZFSin/zfs/include -c %(FullPath) -o $(OutDir)/%(Filename).obj</Command>
+      <Message>CLANG Phase (make sure it is installed)</Message>
+      <Outputs>$(OutDir)/%(Filename).obj</Outputs>
+      <AdditionalInputs>$(SolutionDir)/ZFSin/zfs/lib/libspl/include/sys/ia32/asm_linkage.h</AdditionalInputs>
+      <OutputItemType>Object</OutputItemType>
+      <BuildInParallel>true</BuildInParallel>
+    </CustomBuild>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -293,6 +317,14 @@
       <RuntimeLibrary>
       </RuntimeLibrary>
     </ClCompile>
+    <CustomBuild>
+      <Command>clang  -I$(SolutionDir)/ZFSin/zfs/lib/libspl/include -I$(SolutionDir)/ZFSin/zfs/module/icp/include -I$(SolutionDir)/ZFSin/zfs/include -c %(FullPath) -o $(OutDir)/%(Filename).obj</Command>
+      <Message>CLANG Phase (make sure it is installed)</Message>
+      <Outputs>$(OutDir)/%(Filename).obj</Outputs>
+      <AdditionalInputs>$(SolutionDir)/ZFSin/zfs/lib/libspl/include/sys/ia32/asm_linkage.h</AdditionalInputs>
+      <OutputItemType>Object</OutputItemType>
+      <BuildInParallel>true</BuildInParallel>
+    </CustomBuild>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

@@ -155,6 +155,7 @@
 
 #if defined(lint) || defined(__lint)
 
+
 #include <sys/types.h>
 
 /* ARGSUSED */
@@ -184,9 +185,12 @@ rijndael_key_setup_dec_intel(uint32_t rk[], const uint32_t cipherKey[],
 #else	/* lint */
 
 #define _ASM
-#include <sys/asm_linkage.h>
 
-#if defined(_KERNEL) && !defined(__APPLE__)
+//#include <cpuid.h>
+#include <sys/asm_linkage.h>
+//#include <sys/simd_x86.h>
+
+#if defined(_KERNEL) && !defined(_WIN32)
 	/*
 	 * Note: the CLTS macro clobbers P2 (%rsi) under i86xpv.  That is,
 	 * it calls HYPERVISOR_fpu_taskswitch() which modifies %rsi when it
@@ -400,8 +404,8 @@ _key_expansion_256b:
  *	const int bits, AES_KEY *key);
  * Return value is non-zero on error, 0 on success.
  */
-
 #ifdef	OPENSSL_INTERFACE
+
 #define	rijndael_key_setup_enc_intel	intel_AES_set_encrypt_key
 #define	rijndael_key_setup_dec_intel	intel_AES_set_decrypt_key
 
@@ -410,10 +414,18 @@ _key_expansion_256b:
 #define	KEYSIZE64		rsi	/* P2, 64 bits */
 #define	AESKEY			rdx	/* P3, 64 bits */
 
+#elif _WIN32
+
+#define	AESKEY			rcx	/* P1, 64 bits */
+#define	USERCIPHERKEY		rdx	/* P2, 64 bits */
+#define	KEYSIZE32		r8	/* P3, 32 bits */
+#define	KEYSIZE64		r8	/* P3, 64 bits */
+
 #else	/* OpenSolaris Interface */
+
 #define	AESKEY			rdi	/* P1, 64 bits */
 #define	USERCIPHERKEY		rsi	/* P2, 64 bits */
-#define	KEYSIZE32		edx	/* P3, 32 bits */
+#define	KEYSIZE32		rdx	/* P3, 32 bits */
 #define	KEYSIZE64		rdx	/* P3, 64 bits */
 #endif	/* OPENSSL_INTERFACE */
 
@@ -694,6 +706,13 @@ ENTRY_NP(rijndael_key_setup_dec_intel)
 /* No NROUNDS parameter--offset 240 from KEYP saved in %ecx:  */
 #define	NROUNDS32	ecx	/* temporary, 32 bits */
 #define	NROUNDS		cl	/* temporary,  8 bits */
+
+#elif _WIN32
+
+#define	KEYP		rcx	/* P1, 64 bits */
+#define	NROUNDS		rdx	/* P2, 32 bits */
+#define	INP		r8	/* P3, 64 bits */
+#define	OUTP		r9	/* P4, 64 bits */
 
 #else	/* OpenSolaris Interface */
 #define	KEYP		rdi	/* P1, 64 bits */

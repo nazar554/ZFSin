@@ -53,6 +53,12 @@
 #include <strings.h>
 #endif
 
+#ifdef __clang__
+#define BSWAP_8(x)	((x) & 0xff)
+#define BSWAP_16(x)	((BSWAP_8(x) << 8) | BSWAP_8((x) >> 8))
+#define BSWAP_32(x)	((BSWAP_16(x) << 16) | BSWAP_16((x) >> 16))
+#endif
+
 static void
 fletcher_4_sse2_init(fletcher_4_ctx_t *ctx)
 {
@@ -161,8 +167,13 @@ fletcher_4_sse2_byteswap(fletcher_4_ctx_t *ctx, const void *buf, uint64_t size)
 
 static boolean_t fletcher_4_sse2_valid(void)
 {
+#ifdef __clang__
 	return (zfs_sse2_available());
+#else
+	return B_FALSE;
+#endif
 }
+
 
 const fletcher_4_ops_t fletcher_4_sse2_ops = {
 	.init_native = fletcher_4_sse2_init,
@@ -218,7 +229,11 @@ fletcher_4_ssse3_byteswap(fletcher_4_ctx_t *ctx, const void *buf, uint64_t size)
 
 static boolean_t fletcher_4_ssse3_valid(void)
 {
+#ifdef __clang__
 	return (zfs_sse2_available() && zfs_ssse3_available());
+#else
+	return B_FALSE;
+#endif
 }
 
 const fletcher_4_ops_t fletcher_4_ssse3_ops = {

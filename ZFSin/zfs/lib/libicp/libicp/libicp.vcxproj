@@ -36,7 +36,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\module\icp\algs\aes\aes_impl.c" />
-    <ClCompile Include="..\..\..\module\icp\algs\aes\aes_impl_aesni.c" />
+    <ClCompile Include="..\..\..\module\icp\algs\aes\aes_impl_aesni.c">
+      <FileType>CppCode</FileType>
+    </ClCompile>
     <ClCompile Include="..\..\..\module\icp\algs\aes\aes_impl_generic.c" />
     <ClCompile Include="..\..\..\module\icp\algs\aes\aes_impl_x86-64.c" />
     <ClCompile Include="..\..\..\module\icp\algs\aes\aes_modes.c" />

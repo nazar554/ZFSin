@@ -26,9 +26,13 @@
 #define	_VDEV_RAIDZ_H
 
 #include <sys/types.h>
+//#include <sys/debug.h>
+//#include <sys/kstat.h>
+//#include <sys/abd.h>
+struct abd;
+typedef struct abd abd_t;
 #include <sys/debug.h>
-#include <sys/kstat.h>
-#include <sys/abd.h>
+#include <sys/w32_types.h>
 
 #ifdef  __cplusplus
 extern "C" {

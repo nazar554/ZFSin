@@ -73,30 +73,16 @@
 #if defined(__x86)
 
 #include <sys/types.h>
+#include <sys/w32_types.h>
 
 
 #if defined(_KERNEL)
-#include <cpuid.h>
 
-#include <i386/cpuid.h>
-#include <i386/proc_reg.h>
-
-#ifdef __APPLE__
-// XNU fpu.h
-static inline uint64_t xgetbv(uint32_t c) {
-        uint32_t        mask_hi, mask_lo;
-        __asm__ __volatile__("xgetbv" : "=a"(mask_lo), "=d"(mask_hi) : "c" (c));
-        return ((uint64_t) mask_hi<<32) + (uint64_t) mask_lo;
-}
+#error "This file is not for kernel mode"
 
 #endif
 
-extern uint64_t spl_cpuid_features(void);
-extern uint64_t spl_cpuid_leaf7_features(void);
-
-#define	ZFS_ASM_BUG()	{ ASSERT(0); } break
-
-#endif
+#undef _KERNEL
 
 #define kfpu_begin()  ((void)0)
 #define kfpu_end()    ((void)0)
@@ -107,10 +93,13 @@ extern uint64_t spl_cpuid_leaf7_features(void);
  */
 #if !defined(_KERNEL)
 
-#include <assert.h>
-#include <sys/w32_types.h>
+#ifdef __clang__
+//#include <cpuid.h>
+#include <intrin.h>
+#endif
+ //#include <assert.h>
 
-#define	ZFS_ASM_BUG()	{ assert(0); } break
+#define	ZFS_ASM_BUG()	break
 
 /*
  * x86 registers used implicitly by CPUID
@@ -176,7 +165,7 @@ typedef struct cpuid_feature_desc {
 /*
  * Descriptions of supported instruction sets
  */
-static const cpuid_feature_desc_t spl_cpuid_features[] = {
+static const cpuid_feature_desc_t cpuid_features[] = {
 	[SSE]		= {1U, 0U,	1U << 25, 	EDX	},
 	[SSE2]		= {1U, 0U,	1U << 26,	EDX	},
 	[SSE3]		= {1U, 0U,	1U << 0,	ECX	},
@@ -219,7 +208,7 @@ static inline boolean_t
 __cpuid_check_feature(const cpuid_feature_desc_t *desc)
 {
 	uint32_t r[CPUID_REG_CNT];
-
+#if 0
 	if (__get_cpuid_max(0, NULL) >= desc->leaf) {
 		/*
 		 * __cpuid_count is needed to properly check
@@ -230,6 +219,7 @@ __cpuid_check_feature(const cpuid_feature_desc_t *desc)
 		    r[EAX], r[EBX], r[ECX], r[EDX]);
 		return ((r[desc->reg] & desc->flag) == desc->flag);
 	}
+#endif
 	return (B_FALSE);
 }
 
@@ -237,7 +227,7 @@ __cpuid_check_feature(const cpuid_feature_desc_t *desc)
 static inline boolean_t						\
 __cpuid_has_ ## name(void)					\
 {								\
-	return (__cpuid_check_feature(&spl_cpuid_features[id]));	\
+	return (__cpuid_check_feature(&cpuid_features[id]));	\
 }
 
 /*

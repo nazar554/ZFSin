@@ -843,15 +843,6 @@
     <ClCompile Include="zfs\module\icp\algs\modes\gcm_pclmulqdq.c">
       <Filter>Source Files\ZFS\module\icp\algs\modes</Filter>
     </ClCompile>
-    <ClCompile Include="zfs\module\zcommon\zfs_fletcher_avx512.c">
-      <Filter>Source Files\ZFS\module\zcommon</Filter>
-    </ClCompile>
-    <ClCompile Include="zfs\module\zcommon\zfs_fletcher_intel.c">
-      <Filter>Source Files\ZFS\module\zcommon</Filter>
-    </ClCompile>
-    <ClCompile Include="zfs\module\zcommon\zfs_fletcher_sse.c">
-      <Filter>Source Files\ZFS\module\zcommon</Filter>
-    </ClCompile>
     <ClCompile Include="zfs\module\zcommon\zfs_fletcher_superscalar.c">
       <Filter>Source Files\ZFS\module\zcommon</Filter>
     </ClCompile>
@@ -861,22 +852,7 @@
     <ClCompile Include="zfs\module\zfs\vdev_raidz_math.c">
       <Filter>Source Files\ZFS\module\zfs</Filter>
     </ClCompile>
-    <ClCompile Include="zfs\module\zfs\vdev_raidz_math_avx512bw.c">
-      <Filter>Source Files\ZFS\module\zfs</Filter>
-    </ClCompile>
-    <ClCompile Include="zfs\module\zfs\vdev_raidz_math_avx512f.c">
-      <Filter>Source Files\ZFS\module\zfs</Filter>
-    </ClCompile>
     <ClCompile Include="zfs\module\zfs\vdev_raidz_math_scalar.c">
-      <Filter>Source Files\ZFS\module\zfs</Filter>
-    </ClCompile>
-    <ClCompile Include="zfs\module\zfs\vdev_raidz_math_sse2.c">
-      <Filter>Source Files\ZFS\module\zfs</Filter>
-    </ClCompile>
-    <ClCompile Include="zfs\module\zfs\vdev_raidz_math_ssse3.c">
-      <Filter>Source Files\ZFS\module\zfs</Filter>
-    </ClCompile>
-    <ClCompile Include="zfs\module\zfs\vdev_raidz_math_avx2.c">
       <Filter>Source Files\ZFS\module\zfs</Filter>
     </ClCompile>
   </ItemGroup>
@@ -994,6 +970,33 @@
     </CustomBuild>
     <CustomBuild Include="zfs\module\icp\asm-x86_64\aes\aes_amd64.S">
       <Filter>Source Files\ZFS\module\icp\asm-x86_64\aes</Filter>
+    </CustomBuild>
+    <CustomBuild Include="zfs\module\zfs\vdev_raidz_math_avx512bw.c">
+      <Filter>Source Files\ZFS\module\zfs</Filter>
+    </CustomBuild>
+    <CustomBuild Include="zfs\module\zfs\vdev_raidz_math_avx512f.c">
+      <Filter>Source Files\ZFS\module\zfs</Filter>
+    </CustomBuild>
+    <CustomBuild Include="zfs\module\zfs\vdev_raidz_math_sse2.c">
+      <Filter>Source Files\ZFS\module\zfs</Filter>
+    </CustomBuild>
+    <CustomBuild Include="zfs\module\zfs\vdev_raidz_math_ssse3.c">
+      <Filter>Source Files\ZFS\module\zfs</Filter>
+    </CustomBuild>
+    <CustomBuild Include="zfs\module\zcommon\zfs_fletcher_avx512.c">
+      <Filter>Source Files\ZFS\module\zcommon</Filter>
+    </CustomBuild>
+    <CustomBuild Include="zfs\module\zcommon\zfs_fletcher_intel.c">
+      <Filter>Source Files\ZFS\module\zcommon</Filter>
+    </CustomBuild>
+    <CustomBuild Include="zfs\module\zcommon\zfs_fletcher_sse.c">
+      <Filter>Source Files\ZFS\module\zcommon</Filter>
+    </CustomBuild>
+    <CustomBuild Include="zfs\module\zfs\vdev_raidz_math_avx2.c">
+      <Filter>Source Files\ZFS\module\zfs</Filter>
+    </CustomBuild>
+    <CustomBuild Include="zfs\module\icp\asm-x86_64\modes\gcm_pclmulqdq.S">
+      <Filter>Source Files\ZFS\module\icp\asm-x86_64\modes</Filter>
     </CustomBuild>
   </ItemGroup>
 </Project>

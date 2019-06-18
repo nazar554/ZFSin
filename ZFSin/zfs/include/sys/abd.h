@@ -37,6 +37,7 @@ typedef enum abd_flags {
 	ABD_FLAG_NOMOVE = 1 << 4,       /* (APPLE) : abd_to_buf() called on this abd */
 } abd_flags_t;
 
+#ifndef __clang__
 typedef struct abd {
 #ifdef DEBUG
 #define ABD_DEBUG_MAGIC 0xf33df0c3d3adb3efULL
@@ -60,16 +61,23 @@ typedef struct abd {
 	} abd_u;
 } abd_t;
 
-typedef int abd_iter_func_t(void *buf, size_t len, void *_private);
-typedef int abd_iter_func2_t(void *bufa, void *bufb, size_t len, void *_private);
-
-extern boolean_t zfs_abd_scatter_enabled;
-
 static inline boolean_t
 abd_is_linear(abd_t *abd)
 {
 	return ((abd->abd_flags & ABD_FLAG_LINEAR) != 0 ? B_TRUE : B_FALSE);
 }
+
+#else  // clang
+
+struct abd;
+typedef struct abd abd_t;
+
+#endif
+
+typedef int abd_iter_func_t(void *buf, size_t len, void *_private);
+typedef int abd_iter_func2_t(void *bufa, void *bufb, size_t len, void *_private);
+
+extern boolean_t zfs_abd_scatter_enabled;
 
 /*
  * Allocations and deallocations

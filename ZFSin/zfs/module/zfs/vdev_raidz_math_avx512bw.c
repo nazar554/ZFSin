@@ -60,9 +60,10 @@
 extern const uint8_t gf_clmul_mod_lt[4*256][16];
 
 #define	ELEM_SIZE 64
-
+#undef __attribute__
+#undef aligned
 typedef struct v {
-	uint8_t b[ELEM_SIZE] __attribute__((aligned(ELEM_SIZE)));
+	uint8_t b[ELEM_SIZE] __attribute__((aligned(64)));
 } v_t;
 
 #define	XOR_ACC(src, r...)						\
