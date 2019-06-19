@@ -50,15 +50,23 @@ extern void aes_decrypt_intel(const uint32_t rk[], int Nr,
  * keyarr32	User key
  * keyBits	AES key size (128, 192, or 256 bits)
  */
+extern  void
+aes_generic_generate(aes_key_t *key, const uint32_t *keyarr32, int keybits);
+
 static void
 aes_aesni_generate(aes_key_t *key, const uint32_t *keyarr32, int keybits)
 {
-	kfpu_begin();
-	key->nr = rijndael_key_setup_enc_intel(&(key->encr_ks.ks32[0]),
-	    keyarr32, keybits);
-	key->nr = rijndael_key_setup_dec_intel(&(key->decr_ks.ks32[0]),
-	    keyarr32, keybits);
-	kfpu_end();
+	/*
+	 * The aes keygen currently crashed in Windows. Unsure why, trashing registers? 
+	 */
+//	kfpu_begin();
+//	key->nr = rijndael_key_setup_enc_intel(&(key->encr_ks.ks32[0]),
+//	    keyarr32, keybits);
+//	key->nr = rijndael_key_setup_dec_intel(&(key->decr_ks.ks32[0]),
+//	    keyarr32, keybits);
+	aes_generic_generate(key, keyarr32,keybits);
+
+//	kfpu_end();
 }
 
 /*
@@ -75,12 +83,17 @@ aes_aesni_generate(aes_key_t *key, const uint32_t *keyarr32, int keybits)
  * pt		Input block (plain text)
  * ct		Output block (crypto text).  Can overlap with pt
  */
+extern  void
+aes_generic_encrypt(const uint32_t rk[], int Nr, const uint32_t ct[4],
+	uint32_t pt[4]);
+
 static void
 aes_aesni_encrypt(const uint32_t rk[], int Nr, const uint32_t pt[4],
     uint32_t ct[4])
 {
 	kfpu_begin();
 	aes_encrypt_intel(rk, Nr, pt, ct);
+//	aes_generic_encrypt(rk, Nr, pt, ct);
 	kfpu_end();
 }
 
@@ -98,12 +111,17 @@ aes_aesni_encrypt(const uint32_t rk[], int Nr, const uint32_t pt[4],
  * ct		Input block (crypto text)
  * pt		Output block (plain text). Can overlap with pt
  */
+extern void
+aes_generic_decrypt(const uint32_t rk[], int Nr, const uint32_t ct[4],
+	uint32_t pt[4]);
+
 static void
 aes_aesni_decrypt(const uint32_t rk[], int Nr, const uint32_t ct[4],
     uint32_t pt[4])
 {
 	kfpu_begin();
 	aes_decrypt_intel(rk, Nr, ct, pt);
+//	aes_generic_decrypt(rk, Nr, pt, ct);
 	kfpu_end();
 }
 

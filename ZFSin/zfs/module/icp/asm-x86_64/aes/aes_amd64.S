@@ -714,6 +714,20 @@ enc_tab:
 	mov	%r12, 3*8(%rsp)	// P3: context in r8
 	movzx	4*KS_LENGTH(kptr), %esi	// Get byte key length * 16
 
+#elif _WIN32
+
+	// Win64 parameters are (RCX, RDX, R8, R9)
+	sub	$(4*8), %rsp	// Make room on stack to save registers
+	mov	%r9, (%rsp)	// Save output pointer (P4) on stack
+	mov	%r8, %rdi	// P3: save input pointer
+	mov %rdx, %rsi
+	shl	$4, %esi	// P2: esi byte key length * 16
+	mov	%rcx, %r8	// context (P1)
+
+	mov	%rbx, 1*8(%rsp)	// Save registers
+	mov	%rbp, 2*8(%rsp)
+	mov	%r12, 3*8(%rsp)
+
 #else
 	// OpenSolaris OS interface
 	sub	$(4*8), %rsp	// Make room on stack to save registers
@@ -817,6 +831,20 @@ dec_tab:
 	mov	%rbp, 2*8(%rsp)	// P2: output pointer in (rsp)
 	mov	%r12, 3*8(%rsp)	// P3: context in r8
 	movzx	4*KS_LENGTH(kptr), %esi	// Get byte key length * 16
+
+#elif _WIN32
+
+	// Win64 parameters are (RCX, RDX, R8, R9)
+	sub	$(4*8), %rsp	// Make room on stack to save registers
+	mov	%r9, (%rsp)	// Save output pointer (P4) on stack
+	mov	%r8, %rdi	// P3: save input pointer
+	mov %rdx, %rsi
+	shl	$4, %esi	// P2: esi byte key length * 16
+	mov	%rcx, %r8	// context (P1)
+
+	mov	%rbx, 1*8(%rsp)	// Save registers
+	mov	%rbp, 2*8(%rsp)
+	mov	%r12, 3*8(%rsp)
 
 #else
 	// OpenSolaris OS interface

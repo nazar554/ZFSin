@@ -291,8 +291,33 @@ rijndael_key_setup_dec_intel(uint32_t rk[], const uint32_t cipherKey[],
 #define	PROTECTED_CLTS
 #define	CLEAR_TS_OR_PUSH_XMM0_XMM1(tmpreg)
 #define	SET_TS_OR_POP_XMM0_XMM1(tmpreg)
-#define	CLEAR_TS_OR_PUSH_XMM0_TO_XMM6(tmpreg)
-#define	SET_TS_OR_POP_XMM0_TO_XMM6(tmpreg)
+//#define	CLEAR_TS_OR_PUSH_XMM0_TO_XMM6(tmpreg)
+//#define	SET_TS_OR_POP_XMM0_TO_XMM6(tmpreg)
+
+#define	CLEAR_TS_OR_PUSH_XMM0_TO_XMM6(tmpreg) \
+	push	%rbp; \
+	mov	%rsp, %rbp; \
+	and	$-XMM_ALIGN, %rsp; \
+	sub	$(XMM_SIZE * 7), %rsp; \
+	movaps	%xmm0, 96(%rsp); \
+	movaps	%xmm1, 80(%rsp); \
+	movaps	%xmm2, 64(%rsp); \
+	movaps	%xmm3, 48(%rsp); \
+	movaps	%xmm4, 32(%rsp); \
+	movaps	%xmm5, 16(%rsp); \
+	movaps	%xmm6, (%rsp); \
+
+#define	SET_TS_OR_POP_XMM0_TO_XMM6(tmpreg) \
+	movaps	(%rsp), %xmm6; \
+	movaps	16(%rsp), %xmm5; \
+	movaps	32(%rsp), %xmm4; \
+	movaps	48(%rsp), %xmm3; \
+	movaps	64(%rsp), %xmm2; \
+	movaps	80(%rsp), %xmm1; \
+	movaps	96(%rsp), %xmm0; \
+	mov	%rbp, %rsp; \
+	pop	%rbp
+
 #endif	/* _KERNEL */
 
 
@@ -418,7 +443,7 @@ _key_expansion_256b:
 
 #define	AESKEY			rcx	/* P1, 64 bits */
 #define	USERCIPHERKEY		rdx	/* P2, 64 bits */
-#define	KEYSIZE32		r8	/* P3, 32 bits */
+#define	KEYSIZE32		r8d	/* P3, 32 bits */
 #define	KEYSIZE64		r8	/* P3, 64 bits */
 
 #else	/* OpenSolaris Interface */
