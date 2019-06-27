@@ -44,6 +44,25 @@ extern "C" {
  * make annoying differences in assembler syntax go away
  */
 
+/* WIN64 */
+#define	FRAME_BEGIN \
+	push %rbp; \
+	mov	%rsp, %rbp; 
+
+#define	FRAME_END \
+	mov	%rbp, %rsp; \
+	pop	%rbp
+
+#define	FRAME_BEGIN_PRESERVE_XMM6 \
+	FRAME_BEGIN \
+	and	$-XMM_ALIGN, %rsp; \
+	sub	$(XMM_SIZE * 1), %rsp; \
+	movaps	%xmm6, (%rsp);
+
+#define	FRAME_END_PRESERVE_XMM6 \
+	movaps (%rsp), %xmm6; \
+	FRAME_END
+
 /*
  * D16 and A16 are used to insert instructions prefixes; the
  * macros help the assembler code be slightly more portable.

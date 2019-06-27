@@ -151,6 +151,12 @@
  * registers without this.
  *
  * ====================================================================
+ * Windows modifications
+ * First 4 parameteres are in:
+ * RCX, RDX, R8, and R9. Floating point arguments are passed in XMM0L, XMM1L, XMM2L, and XMM3L.  
+ * Parameter passing is described in detail in Parameter Passing. 
+ * In addition to these registers, RAX, R10, R11, XMM4, and XMM5 are considered volatile. All other registers are non-volatile.
+ * Return value is in RAX
  */
 
 #if defined(lint) || defined(__lint)
@@ -184,141 +190,13 @@ rijndael_key_setup_dec_intel(uint32_t rk[], const uint32_t cipherKey[],
 
 #else	/* lint */
 
-#define _ASM
 
-//#include <cpuid.h>
 #include <sys/asm_linkage.h>
-//#include <sys/simd_x86.h>
-
-#if defined(_KERNEL) && !defined(_WIN32)
-	/*
-	 * Note: the CLTS macro clobbers P2 (%rsi) under i86xpv.  That is,
-	 * it calls HYPERVISOR_fpu_taskswitch() which modifies %rsi when it
-	 * uses it to pass P2 to syscall.
-	 * This also occurs with the STTS macro, but we dont care if
-	 * P2 (%rsi) is modified just before function exit.
-	 * The CLTS and STTS macros push and pop P1 (%rdi) already.
-	 */
-#ifdef __xpv
-#define	PROTECTED_CLTS \
-	push	%rsi; \
-	CLTS; \
-	pop	%rsi
-#else
-#define	PROTECTED_CLTS \
-	CLTS
-#endif	/* __xpv */
-
-#define	CLEAR_TS_OR_PUSH_XMM0_XMM1(tmpreg) \
-	push	%rbp; \
-	mov	%rsp, %rbp; \
-	movq	%cr0, tmpreg; \
-	testq	$CR0_TS, tmpreg; \
-	jnz	1f; \
-	and	$-XMM_ALIGN, %rsp; \
-	sub	$(XMM_SIZE * 2), %rsp; \
-	movaps	%xmm0, 16(%rsp); \
-	movaps	%xmm1, (%rsp); \
-	jmp	2f; \
-1: \
-	PROTECTED_CLTS; \
-2:
-
-	/*
-	 * If CR0_TS was not set above, pop %xmm0 and %xmm1 off stack,
-	 * otherwise set CR0_TS.
-	 */
-#define	SET_TS_OR_POP_XMM0_XMM1(tmpreg) \
-	testq	$CR0_TS, tmpreg; \
-	jnz	1f; \
-	movaps	(%rsp), %xmm1; \
-	movaps	16(%rsp), %xmm0; \
-	jmp	2f; \
-1: \
-	STTS(tmpreg); \
-2: \
-	mov	%rbp, %rsp; \
-	pop	%rbp
-
-	/*
-	 * If CR0_TS is not set, align stack (with push %rbp) and push
-	 * %xmm0 - %xmm6 on stack, otherwise clear CR0_TS
-	 */
-#define	CLEAR_TS_OR_PUSH_XMM0_TO_XMM6(tmpreg) \
-	push	%rbp; \
-	mov	%rsp, %rbp; \
-	movq	%cr0, tmpreg; \
-	testq	$CR0_TS, tmpreg; \
-	jnz	1f; \
-	and	$-XMM_ALIGN, %rsp; \
-	sub	$(XMM_SIZE * 7), %rsp; \
-	movaps	%xmm0, 96(%rsp); \
-	movaps	%xmm1, 80(%rsp); \
-	movaps	%xmm2, 64(%rsp); \
-	movaps	%xmm3, 48(%rsp); \
-	movaps	%xmm4, 32(%rsp); \
-	movaps	%xmm5, 16(%rsp); \
-	movaps	%xmm6, (%rsp); \
-	jmp	2f; \
-1: \
-	PROTECTED_CLTS; \
-2:
 
 
-	/*
-	 * If CR0_TS was not set above, pop %xmm0 - %xmm6 off stack,
-	 * otherwise set CR0_TS.
-	 */
-#define	SET_TS_OR_POP_XMM0_TO_XMM6(tmpreg) \
-	testq	$CR0_TS, tmpreg; \
-	jnz	1f; \
-	movaps	(%rsp), %xmm6; \
-	movaps	16(%rsp), %xmm5; \
-	movaps	32(%rsp), %xmm4; \
-	movaps	48(%rsp), %xmm3; \
-	movaps	64(%rsp), %xmm2; \
-	movaps	80(%rsp), %xmm1; \
-	movaps	96(%rsp), %xmm0; \
-	jmp	2f; \
-1: \
-	STTS(tmpreg); \
-2: \
-	mov	%rbp, %rsp; \
-	pop	%rbp
-
-
-#else
-#define	PROTECTED_CLTS
-#define	CLEAR_TS_OR_PUSH_XMM0_XMM1(tmpreg)
-#define	SET_TS_OR_POP_XMM0_XMM1(tmpreg)
-//#define	CLEAR_TS_OR_PUSH_XMM0_TO_XMM6(tmpreg)
-//#define	SET_TS_OR_POP_XMM0_TO_XMM6(tmpreg)
-
-#define	CLEAR_TS_OR_PUSH_XMM0_TO_XMM6(tmpreg) \
-	push	%rbp; \
-	mov	%rsp, %rbp; \
-	and	$-XMM_ALIGN, %rsp; \
-	sub	$(XMM_SIZE * 7), %rsp; \
-	movaps	%xmm0, 96(%rsp); \
-	movaps	%xmm1, 80(%rsp); \
-	movaps	%xmm2, 64(%rsp); \
-	movaps	%xmm3, 48(%rsp); \
-	movaps	%xmm4, 32(%rsp); \
-	movaps	%xmm5, 16(%rsp); \
-	movaps	%xmm6, (%rsp); \
-
-#define	SET_TS_OR_POP_XMM0_TO_XMM6(tmpreg) \
-	movaps	(%rsp), %xmm6; \
-	movaps	16(%rsp), %xmm5; \
-	movaps	32(%rsp), %xmm4; \
-	movaps	48(%rsp), %xmm3; \
-	movaps	64(%rsp), %xmm2; \
-	movaps	80(%rsp), %xmm1; \
-	movaps	96(%rsp), %xmm0; \
-	mov	%rbp, %rsp; \
-	pop	%rbp
-
-#endif	/* _KERNEL */
+// Original implementation use rcx, but that collides with
+// P1, so we assign another scratch register
+ #define TREG r10
 
 
 /*
@@ -344,8 +222,8 @@ _key_expansion_256a:
 	shufps	$0b10001100, %xmm0, %xmm4
 	pxor	%xmm4, %xmm0
 	pxor	%xmm1, %xmm0
-	movups	%xmm0, (%rcx)
-	add	$0x10, %rcx
+	movups	%xmm0, (%TREG)
+	add	$0x10, %TREG
 	ret
 	SET_SIZE(_key_expansion_128)
 	SET_SIZE(_key_expansion_256a)
@@ -360,18 +238,18 @@ _key_expansion_192a:
 	pxor	%xmm1, %xmm0
 
 	movups	%xmm2, %xmm5
-	movups	%xmm2, %xmm6
+	movups	%xmm2, %xmm7
 	pslldq	$4, %xmm5
 	pshufd	$0b11111111, %xmm0, %xmm3
 	pxor	%xmm3, %xmm2
 	pxor	%xmm5, %xmm2
 
 	movups	%xmm0, %xmm1
-	shufps	$0b01000100, %xmm0, %xmm6
-	movups	%xmm6, (%rcx)
+	shufps	$0b01000100, %xmm0, %xmm7
+	movups	%xmm7, (%TREG)
 	shufps	$0b01001110, %xmm2, %xmm1
-	movups	%xmm1, 0x10(%rcx)
-	add	$0x20, %rcx
+	movups	%xmm1, 0x10(%TREG)
+	add	$0x20, %TREG
 	ret
 	SET_SIZE(_key_expansion_192a)
 
@@ -390,8 +268,8 @@ _key_expansion_192b:
 	pxor	%xmm3, %xmm2
 	pxor	%xmm5, %xmm2
 
-	movups	%xmm0, (%rcx)
-	add	$0x10, %rcx
+	movups	%xmm0, (%TREG)
+	add	$0x10, %TREG
 	ret
 	SET_SIZE(_key_expansion_192b)
 
@@ -403,8 +281,8 @@ _key_expansion_256b:
 	shufps	$0b10001100, %xmm2, %xmm4
 	pxor	%xmm4, %xmm2
 	pxor	%xmm1, %xmm2
-	movups	%xmm2, (%rcx)
-	add	$0x10, %rcx
+	movups	%xmm2, (%TREG)
+	add	$0x10, %TREG
 	ret
 	SET_SIZE(_key_expansion_256b)
 
@@ -439,7 +317,7 @@ _key_expansion_256b:
 #define	KEYSIZE64		rsi	/* P2, 64 bits */
 #define	AESKEY			rdx	/* P3, 64 bits */
 
-#elif _WIN32
+#elif defined (_WIN32)
 
 #define	AESKEY			rcx	/* P1, 64 bits */
 #define	USERCIPHERKEY		rdx	/* P2, 64 bits */
@@ -460,7 +338,8 @@ _key_expansion_256b:
 
 ENTRY_NP(rijndael_key_setup_enc_intel)
 rijndael_key_setup_enc_intel_local:
-	CLEAR_TS_OR_PUSH_XMM0_TO_XMM6(%r10)
+
+	FRAME_BEGIN_PRESERVE_XMM6
 
 	// NULL pointer sanity check
 	test	%USERCIPHERKEY, %USERCIPHERKEY
@@ -470,7 +349,7 @@ rijndael_key_setup_enc_intel_local:
 
 	movups	(%USERCIPHERKEY), %xmm0	// user key (first 16 bytes)
 	movups	%xmm0, (%AESKEY)
-	lea	0x10(%AESKEY), %rcx	// key addr
+	lea	0x10(%AESKEY), %TREG	// key addr
 	pxor	%xmm4, %xmm4		// xmm4 is assumed 0 in _key_expansion_x
 
 	cmp	$256, %KEYSIZE32
@@ -483,8 +362,8 @@ rijndael_key_setup_enc_intel_local:
 #endif	/* OPENSSL_INTERFACE */
 
 	movups	0x10(%USERCIPHERKEY), %xmm2	// other user key (2nd 16 bytes)
-	movups	%xmm2, (%rcx)
-	add	$0x10, %rcx
+	movups	%xmm2, (%TREG)
+	add	$0x10, %TREG
 
 	aeskeygenassist $0x1, %xmm2, %xmm1	// expand the key
 	call	_key_expansion_256a
@@ -513,7 +392,8 @@ rijndael_key_setup_enc_intel_local:
 	aeskeygenassist $0x40, %xmm2, %xmm1	// expand the key
 	call	_key_expansion_256a
 
-	SET_TS_OR_POP_XMM0_TO_XMM6(%r10)
+	FRAME_END_PRESERVE_XMM6
+
 #ifdef	OPENSSL_INTERFACE
 	xor	%rax, %rax			// return 0 (OK)
 #else	/* Open Solaris Interface */
@@ -550,7 +430,8 @@ rijndael_key_setup_enc_intel_local:
 	aeskeygenassist $0x80, %xmm2, %xmm1	// expand the key
 	call	_key_expansion_192b
 
-	SET_TS_OR_POP_XMM0_TO_XMM6(%r10)
+	FRAME_END_PRESERVE_XMM6
+
 #ifdef	OPENSSL_INTERFACE
 	xor	%rax, %rax			// return 0 (OK)
 #else	/* OpenSolaris Interface */
@@ -590,7 +471,8 @@ rijndael_key_setup_enc_intel_local:
 	aeskeygenassist $0x36, %xmm0, %xmm1	// expand the key
 	call	_key_expansion_128
 
-	SET_TS_OR_POP_XMM0_TO_XMM6(%r10)
+	FRAME_END_PRESERVE_XMM6
+
 #ifdef	OPENSSL_INTERFACE
 	xor	%rax, %rax			// return 0 (OK)
 #else	/* OpenSolaris Interface */
@@ -600,7 +482,7 @@ rijndael_key_setup_enc_intel_local:
 
 .Lenc_key_invalid_param:
 #ifdef	OPENSSL_INTERFACE
-	SET_TS_OR_POP_XMM0_TO_XMM6(%r10)
+	FRAME_END_PRESERVE_XMM6
 	mov	$-1, %rax	// user key or AES key pointer is NULL
 	ret
 #else
@@ -608,7 +490,7 @@ rijndael_key_setup_enc_intel_local:
 #endif	/* OPENSSL_INTERFACE */
 
 .Lenc_key_invalid_key_bits:
-	SET_TS_OR_POP_XMM0_TO_XMM6(%r10)
+	FRAME_END_PRESERVE_XMM6
 #ifdef	OPENSSL_INTERFACE
 	mov	$-2, %rax	// keysize is invalid
 #else	/* Open Solaris Interface */
@@ -650,7 +532,7 @@ ENTRY_NP(rijndael_key_setup_dec_intel)
 	jz	.Ldec_key_exit	// Failed if returned 0
 #endif	/* OPENSSL_INTERFACE */
 
-	CLEAR_TS_OR_PUSH_XMM0_XMM1(%r10)
+	FRAME_BEGIN
 
 	/*
 	 * Convert round keys used for encryption
@@ -661,7 +543,7 @@ ENTRY_NP(rijndael_key_setup_dec_intel)
 					// (already set for OpenSSL)
 #endif
 
-	lea	0x10(%AESKEY), %rcx	// key addr
+	lea	0x10(%AESKEY), %TREG	// key addr
 	shl	$4, %ROUNDS32
 	add	%AESKEY, %ROUNDS64
 	mov	%ROUNDS64, %ENDAESKEY
@@ -679,16 +561,16 @@ ENTRY_NP(rijndael_key_setup_dec_intel)
 
 .align 4
 .Ldec_key_inv_loop:
-	movups	(%rcx), %xmm0
+	movups	(%TREG), %xmm0
 	// Convert an encryption round key to a form usable for decryption
 	// with the "AES Inverse Mix Columns" instruction
 	aesimc	%xmm0, %xmm1
-	movups	%xmm1, (%rcx)
-	lea	0x10(%rcx), %rcx
-	cmp	%ENDAESKEY, %rcx
+	movups	%xmm1, (%TREG)
+	lea	0x10(%TREG), %TREG
+	cmp	%ENDAESKEY, %TREG
 	jnz	.Ldec_key_inv_loop
 
-	SET_TS_OR_POP_XMM0_XMM1(%r10)
+	FRAME_END
 
 .Ldec_key_exit:
 	// OpenSolaris: rax = # rounds (10, 12, or 14) or 0 for error
@@ -732,7 +614,7 @@ ENTRY_NP(rijndael_key_setup_dec_intel)
 #define	NROUNDS32	ecx	/* temporary, 32 bits */
 #define	NROUNDS		cl	/* temporary,  8 bits */
 
-#elif _WIN32
+#elif defined (_WIN32)
 
 #define	KEYP		rcx	/* P1, 64 bits */
 #define	NROUNDS		rdx	/* P2, 32 bits */
@@ -750,7 +632,7 @@ ENTRY_NP(rijndael_key_setup_dec_intel)
 #define	KEY		xmm1	/* temporary, 128 bits */
 
 ENTRY_NP(aes_encrypt_intel)
-	CLEAR_TS_OR_PUSH_XMM0_XMM1(%r10)
+	FRAME_BEGIN
 
 	movups	(%INP), %STATE			// input
 	movups	(%KEYP), %KEY			// key
@@ -807,7 +689,7 @@ ENTRY_NP(aes_encrypt_intel)
 	aesenclast	 %KEY, %STATE		// last round
 	movups	%STATE, (%OUTP)			// output
 
-	SET_TS_OR_POP_XMM0_XMM1(%r10)
+	FRAME_END
 	ret
 	SET_SIZE(aes_encrypt_intel)
 
@@ -835,7 +717,7 @@ ENTRY_NP(aes_encrypt_intel)
  *	const AES_KEY *key);
  */
 ENTRY_NP(aes_decrypt_intel)
-	CLEAR_TS_OR_PUSH_XMM0_XMM1(%r10)
+	FRAME_BEGIN
 
 	movups	(%INP), %STATE			// input
 	movups	(%KEYP), %KEY			// key
@@ -892,7 +774,7 @@ ENTRY_NP(aes_decrypt_intel)
 	aesdeclast	%KEY, %STATE		// last round
 	movups	%STATE, (%OUTP)			// output
 
-	SET_TS_OR_POP_XMM0_XMM1(%r10)
+	FRAME_END
 	ret
 	SET_SIZE(aes_decrypt_intel)
 

@@ -172,7 +172,7 @@
       <AdditionalOptions>/tr http://timestamp.digicert.com /td sha256 /fd sha256 %(AdditionalOptions)</AdditionalOptions>
     </DriverSign>
     <CustomBuild>
-      <Command>clang  -I$(SolutionDir)/ZFSin/spl/include -I$(SolutionDir)/ZFSin/zfs/module/icp/include -I$(SolutionDir)/ZFSin/zfs/include -c %(FullPath) -o $(OutDir)/k%(Filename).obj</Command>
+      <Command>clang  -D_KERNEL=1 -D_WIN32=1 -D_ASM -I$(SolutionDir)/ZFSin/spl/include -I$(SolutionDir)/ZFSin/zfs/module/icp/include -I$(SolutionDir)/ZFSin/zfs/include -c %(FullPath) -o $(OutDir)/k%(Filename).obj</Command>
     </CustomBuild>
     <CustomBuild>
       <Message>CLANG Phase (%(Filename))</Message>
@@ -199,7 +199,7 @@
       <AdditionalOptions>/tr http://timestamp.digicert.com /td sha256 /fd sha256 %(AdditionalOptions)</AdditionalOptions>
     </DriverSign>
     <CustomBuild>
-      <Command>clang  -I$(SolutionDir)/ZFSin/spl/include -I$(SolutionDir)/ZFSin/zfs/module/icp/include -I$(SolutionDir)/ZFSin/zfs/include -c %(FullPath) -o $(OutDir)/k%(Filename).obj</Command>
+      <Command>clang  -D_KERNEL=1 -D_WIN32=1 -D_ASM -I$(SolutionDir)/ZFSin/spl/include -I$(SolutionDir)/ZFSin/zfs/module/icp/include -I$(SolutionDir)/ZFSin/zfs/include -c %(FullPath) -o $(OutDir)/k%(Filename).obj</Command>
     </CustomBuild>
     <CustomBuild>
       <Message>CLANG Phase (%(Filename))</Message>

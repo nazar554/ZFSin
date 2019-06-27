@@ -87,7 +87,6 @@
 #undef __inline__
 #undef __always_inline
 #undef __inline
-#define _KERNEL
 
 #endif
 

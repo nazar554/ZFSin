@@ -80,13 +80,14 @@ uint64_t spl_cpuid_leaf7_features(void)
 	return leaf7_features;
 }
 
+// Unsure when these are required? avx only?
 static volatile XSTATE_SAVE SaveState;
 void kfpu_begin(void)
 {
-	VERIFY0(KeSaveExtendedProcessorState(XSTATE_MASK_AVX | XSTATE_MASK_LEGACY_SSE, &SaveState));
+	//VERIFY0(KeSaveExtendedProcessorState(XSTATE_MASK_AVX | XSTATE_MASK_LEGACY_SSE, &SaveState));
 }
 
 void kfpu_end(void)
 {
-	KeRestoreExtendedProcessorState(&SaveState);
+	//KeRestoreExtendedProcessorState(&SaveState);
 }

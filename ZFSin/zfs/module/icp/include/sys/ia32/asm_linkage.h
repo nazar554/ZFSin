@@ -36,13 +36,39 @@ extern "C" {
 
 #include <sys/isa_defs.h>
 
+#ifndef _ASM
 #define _ASM
+#endif
+
+#ifndef _KERNEL
+#define _KERNEL 1
+#endif
 
 #ifdef _ASM	/* The remainder of this file is only for assembly files */
 
 /*
  * make annoying differences in assembler syntax go away
  */
+
+ /* WIN64 */
+#define	FRAME_BEGIN \
+	push %rbp; \
+	mov	%rsp, %rbp; 
+
+#define	FRAME_END \
+	mov	%rbp, %rsp; \
+	pop	%rbp
+
+#define	FRAME_BEGIN_PRESERVE_XMM6 \
+	FRAME_BEGIN \
+	and	$-XMM_ALIGN, %rsp; \
+	sub	$(XMM_SIZE * 1), %rsp; \
+	movaps	%xmm6, (%rsp);
+
+#define	FRAME_END_PRESERVE_XMM6 \
+	movaps (%rsp), %xmm6; \
+	FRAME_END
+
 
 /*
  * D16 and A16 are used to insert instructions prefixes; the

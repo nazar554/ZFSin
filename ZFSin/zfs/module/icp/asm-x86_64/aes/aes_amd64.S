@@ -200,7 +200,6 @@ aes_decrypt_amd64(const uint32_t rk[], int Nr, const uint32_t ct[4],
 
 #else
 
-#define _ASM
 #include <sys/asm_linkage.h>
 
 #define	KS_LENGTH	60
@@ -703,6 +702,7 @@ enc_tab:
 
 
 	ENTRY_NP(aes_encrypt_amd64)
+
 #ifdef	GLADMAN_INTERFACE
 	// Original interface
 	sub	$[4*8], %rsp	// gnu/linux/opensolaris binary interface

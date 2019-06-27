@@ -59,14 +59,16 @@ aes_aesni_generate(aes_key_t *key, const uint32_t *keyarr32, int keybits)
 	/*
 	 * The aes keygen currently crashed in Windows. Unsure why, trashing registers? 
 	 */
-//	kfpu_begin();
-//	key->nr = rijndael_key_setup_enc_intel(&(key->encr_ks.ks32[0]),
-//	    keyarr32, keybits);
-//	key->nr = rijndael_key_setup_dec_intel(&(key->decr_ks.ks32[0]),
-//	    keyarr32, keybits);
+#if 1
+	kfpu_begin();
+	key->nr = rijndael_key_setup_enc_intel(&(key->encr_ks.ks32[0]),
+	    keyarr32, keybits);
+	key->nr = rijndael_key_setup_dec_intel(&(key->decr_ks.ks32[0]),
+	    keyarr32, keybits);
+	kfpu_end();
+#else
 	aes_generic_generate(key, keyarr32,keybits);
-
-//	kfpu_end();
+#endif
 }
 
 /*
