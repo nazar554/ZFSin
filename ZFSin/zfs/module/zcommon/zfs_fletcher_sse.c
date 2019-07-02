@@ -167,11 +167,7 @@ fletcher_4_sse2_byteswap(fletcher_4_ctx_t *ctx, const void *buf, uint64_t size)
 
 static boolean_t fletcher_4_sse2_valid(void)
 {
-#ifdef __clang__
 	return (zfs_sse2_available());
-#else
-	return B_FALSE;
-#endif
 }
 
 
