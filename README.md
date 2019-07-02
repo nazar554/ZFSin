@@ -133,6 +133,17 @@ Windows Updates run, you can disable those in gpedit.msc
 	 Windows Defender
 	 Windows Updates
 
+---
+
+Currently, to build the assembler enhancements to OpenZFS, it is required that
+Clang is also installed.
+
+http://releases.llvm.org/download.html
+
+Current as of documentation:  LLVM 8.0.0
+http://releases.llvm.org/8.0.0/LLVM-8.0.0-win64.exe
+
+Install and ensure PATH is updated to include clang.
 
 ---
 
@@ -253,6 +264,12 @@ Latest binary files are available on GitHub:
 https://github.com/openzfsonwindows/ZFSin/releases
 
 Download your preferred package. Either debug, or release.
+
+These releases are now signed, so you can simply install them and run.
+
+---
+
+For developers wanting to build own, or use Kernel Debugging:
 
 Enable unsigned drivers:
 
