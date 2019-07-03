@@ -165,7 +165,7 @@
     </ClCompile>
     <CustomBuild>
       <Command>clang  -I$(SolutionDir)/ZFSin/zfs/lib/libspl/include -I$(SolutionDir)/ZFSin/zfs/module/icp/include -c %(FullPath) -o $(OutDir)/%(Filename).obj</Command>
-      <Message>CLANG Phase (make sure it is installed)</Message>
+      <Message>CLANG Phase (libicp: %(Filename))</Message>
       <Outputs>$(OutDir)/%(Filename).obj</Outputs>
       <AdditionalInputs>$(SolutionDir)/ZFSin/zfs/module/icp/include/sys/ia32/asm_linkage.h</AdditionalInputs>
       <OutputItemType>Object</OutputItemType>
@@ -181,7 +181,7 @@
     </ClCompile>
     <CustomBuild>
       <Command>clang  -I$(SolutionDir)/ZFSin/zfs/lib/libspl/include -I$(SolutionDir)/ZFSin/zfs/module/icp/include -c %(FullPath) -o $(OutDir)/%(Filename).obj</Command>
-      <Message>CLANG Phase (make sure it is installed)</Message>
+      <Message>CLANG Phase (libicp: %(Filename))</Message>
       <Outputs>$(OutDir)/%(Filename).obj</Outputs>
       <AdditionalInputs>$(SolutionDir)/ZFSin/zfs/module/icp/include/sys/ia32/asm_linkage.h</AdditionalInputs>
       <OutputItemType>Object</OutputItemType>
